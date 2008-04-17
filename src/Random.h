@@ -77,4 +77,3 @@ val_t Generate();
 
 #endif // H_e62fce1dbd1b3de95777b710bae3a739_INLINES_H
 #endif //OBJECTS_BUILDER_PROJECT_INLINES
-
