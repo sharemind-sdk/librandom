@@ -1,79 +1,52 @@
 /*
-* This file is a part of the Sharemind framework.
-* 
-* Copyright (C) Dan Bogdanov, 2006-2008
-* All rights are reserved. Reproduction in whole or part is prohibited
-* without the written consent of the copyright owner.
-*/
-#ifndef H_e62fce1dbd1b3de95777b710bae3a739_H
-#define H_e62fce1dbd1b3de95777b710bae3a739_H
+ * This file is a part of the Sharemind framework.
+ *
+ * Copyright (C) Dan Bogdanov, 2006-2008
+ * All rights are reserved. Reproduction in whole or part is prohibited
+ * without the written consent of the copyright owner.
+ *
+ * Main contributors:
+ * Dan Bogdanov (db@math.ut.ee)
+ */
+#ifndef RANDOM_H
+#define RANDOM_H
 
-
-
-//BEGIN_USER_SECTION_BEFORE_CLASS_DECLARATION
 // CryptoPP RNG
 #include <osrng.h>
-//END_USER_SECTION_BEFORE_CLASS_DECLARATION
-
 
 /**
-A random generator. Relies on the ANSI X9.17 Appendix C compliant generator from CryptoPP library.
+ A random generator. Relies on the ANSI X9.17 Appendix C compliant generator from CryptoPP library.
 
-\note The methods are not static so you must make an instance of it to use it.
-
+ \note The methods are not static so you must make an instance of it to use it.
 */
-class Random
-{
-// constructors:
+class Random {
+
 public:
-Random();
+	/**
+	 Initializes the random generator
+	*/
+	Random();
 
 
-/**
-Cleans up
-*/
-public:
-virtual ~Random();
+	/**
+	 Cleans up after the generatorm if necessary
+	*/
+	virtual ~Random();
 
-// members:
+	/**
+	 Generates a random value
 
-/**
- An instance of the CryptoPP generator.
-*/
-public:
-CryptoPP::DefaultAutoSeededRNG strongRNG;
+	 \returns a random value
+	*/
+	val_t Generate();
 
+private:
 
-//methods:
-
-/**
-Generates a random value
-
-\returns a random value
-*/
-public:
-val_t Generate();
-
-
-
-//child groups:
-
-
-//child classes:
-
+	/**
+	 An instance of the CryptoPP generator.
+	*/
+	CryptoPP::DefaultAutoSeededRNG strongRNG;
 
 };
 
-//BEGIN_USER_SECTION_AFTER_CLASS_DECLARATION
-
-//END_USER_SECTION_AFTER_CLASS_DECLARATION
-
-
-#endif // H_e62fce1dbd1b3de95777b710bae3a739_H
-
-#ifdef OBJECTS_BUILDER_PROJECT_INLINES
-#ifndef H_e62fce1dbd1b3de95777b710bae3a739_INLINES_H
-#define H_e62fce1dbd1b3de95777b710bae3a739_INLINES_H
-
-#endif // H_e62fce1dbd1b3de95777b710bae3a739_INLINES_H
-#endif //OBJECTS_BUILDER_PROJECT_INLINES
+#endif // RANDOM_H
