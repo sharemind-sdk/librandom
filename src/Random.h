@@ -1,9 +1,7 @@
 /*
  * This file is a part of the Sharemind framework.
  *
- * Copyright (C) Dan Bogdanov, 2006-2008
- * All rights are reserved. Reproduction in whole or part is prohibited
- * without the written consent of the copyright owner.
+ * Copyright (C) AS Cybernetica, 2006-2009
  *
  * Main contributors:
  * Dan Bogdanov (db@math.ut.ee)
@@ -13,6 +11,7 @@
 
 // CryptoPP RNG
 #include <osrng.h>
+#include "boost/thread/mutex.hpp"
 
 /**
  A random generator. Relies on the ANSI X9.17 Appendix C compliant generator from CryptoPP library.
@@ -46,6 +45,8 @@ private:
 	 An instance of the CryptoPP generator.
 	*/
 	CryptoPP::DefaultAutoSeededRNG strongRNG;
+	
+	boost::mutex theMutex;
 
 };
 
