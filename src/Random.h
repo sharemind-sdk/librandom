@@ -4,7 +4,7 @@
  * Copyright (C) AS Cybernetica, 2006-2009
  *
  * Main contributors:
- * Dan Bogdanov (db@math.ut.ee)
+ * Dan Bogdanov (dan@cyber.ee)
  */
 #ifndef RANDOM_H
 #define RANDOM_H
@@ -39,13 +39,18 @@ public:
 	*/
 	val_t Generate();
 
+	/**
+	 Fills a vector with random values
+	*/
+	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
+
 private:
 
 	/**
 	 An instance of the CryptoPP generator.
 	*/
 	CryptoPP::DefaultAutoSeededRNG strongRNG;
-	
+
 	boost::mutex theMutex;
 
 };
