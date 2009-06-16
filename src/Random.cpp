@@ -43,8 +43,10 @@ val_t Random::Generate() {
 
 
 uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {	
+	uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
+
 	uint32 count = 0;
-	if (start >= vec.size () || end >= vec.size () || start > end) {
+	if (start >= vec.size () || end > vec.size () || start > end) {
 		WRITE_TO_LOG (LOG_MINIMAL, "Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
 		return 0;
 	}
@@ -53,5 +55,7 @@ uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
 		vec[i] = strongRNG.GenerateWord32 ();
 		count++;
 	}
+	
+	ExecutionProfiler::EndSection (methodSectionId);
 	return count;
 }
