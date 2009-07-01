@@ -9,19 +9,10 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
-// CryptoPP RNG
-#include <osrng.h>
-#include "boost/thread/mutex.hpp"
-
 /**
- A pseudorandomness generator. Relies on the ANSI X9.17 Appendix C 
- compliant generator from CryptoPP library.
-
- \note The generator is to be used with instances created. 
- The global generator is used to reinforce the seeds of the
- individual instances.
+ This class is a front end to randomness generation.
  
- \note The generator is not locked, so do not use one instance from several threads.
+ The actual generation is done within the RandomnessCache class.
  
  \note Sometime in the future we might implement something like this:
  \code
@@ -61,7 +52,7 @@ public:
 
 	 \returns a single 32-bit random integer
 	*/
-	val_t Generate();
+	static val_t Generate();
 
 	/**
 	 Fills a vector with random values
@@ -72,29 +63,7 @@ public:
 	 
 	 \return the number of values generated
 	*/
-	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
-
-private:
-
-	/**
-	 An instance of the CryptoPP generator.
-	*/
-	CryptoPP::DefaultAutoSeededRNG strongRNG;
-	
-	/**
-	 The global instance of this class
-	 */
-	static Random globalInstance;
-
-	/**
-	 The mutex guarding the global instance
-	 */
-	static boost::mutex globalInstanceMutex;
-	
-	/**
-	 True, if the global instance is initialized
-	 */
-	static bool globallyInitialized;
+	static uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
 
 };
 
