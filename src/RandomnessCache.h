@@ -19,9 +19,9 @@
 
 /**
  This class is the randomness generator.
- 
+
  It runs in the background and fills a cache.
- The implementation currently relies on the ANSI X9.17 Appendix C 
+ The implementation currently relies on the ANSI X9.17 Appendix C
  compliant generator from the CryptoPP library.
  */
 class RandomnessCache {
@@ -45,11 +45,11 @@ public:
 
 	/**
 	 Fills a vector with random values
-	 
+
 	 \param[in] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
-	 
+
 	 \return the number of values generated
 	*/
 	static uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
@@ -75,10 +75,26 @@ public:
 	 */
 	static void Stop () {
 		WRITE_TO_LOG_NETNODE (LOG_DEBUG, "Stopping the randomness thread.");
+		randomness.clear ();
 		runGeneration = false;
 	}
 
+	/**
+	 * Enable or disable the cache
+	 */
+	static inline void SetUseCache (bool use) {
+		useCache = use;
+		if (!useCache) {
+		    Stop ();
+		}
+	}
+
 private:
+
+	/**
+	 * The configuration value that enables and disables the cache.
+	 */
+	static bool useCache;
 
 	/**
 	 * The loop controller
@@ -94,22 +110,22 @@ private:
 	 The condition used for waiting for cache refill
 	 */
 	static boost::condition waitCondition;
-	
+
 	/**
 	 The cache itself
 	 */
 	static std::deque<val_t> randomness;
-	
+
 	/**
 	 The upper limit to the cache
 	 */
 	static uint32 cacheLimit;
-	
+
 	/**
 	 The actual generator
 	 */
 	static CryptoPP::DefaultAutoSeededRNG strongRNG;
-	
+
 };
 
 #endif // RANDOMNESSCACHE_H
