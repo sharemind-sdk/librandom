@@ -21,12 +21,17 @@ public:
 	/**
 	 Constructs the generator and seeds it from AutoSeededRandom
 	 */
-	FastRandom ();	
+	FastRandom ();
 
 	/**
 	 The destructor of the randomness generator
 	*/
 	virtual ~FastRandom();
+
+	/**
+	 Seeds the generator
+	*/
+	void Seed();
 
 	/**
 	 Generates a single random value

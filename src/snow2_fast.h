@@ -39,27 +39,27 @@
  *   keysize is either 128 or 256.
  *   key is of proper length, for keysize=128, key is of lenght 16 bytes
  *      and for keysize=256, key is of length 32 bytes.
- *   key is given in big endian format, 
+ *   key is given in big endian format,
  *   thus key[0]->msb of s15
  *        key[1]->second msb of s15
  *         ...
  *        key[3]-> lsb of s15
  *         ...
  */
-extern void snow_loadkey_fast(unsigned char *key,
-			       unsigned long keysize,
-			       unsigned long IV3,unsigned long IV2,
-			       unsigned long IV1,unsigned long IV0);
+extern void snow_loadkey_fast(uint8 *key,
+			       uint32 keysize,
+			       uint32 IV3, uint32 IV2,
+			       uint32 IV1, uint32 IV0);
 
 /*
  * Function: snow_keystream_fast
- * 
+ *
  * Synopsis:
  *   Clocks the cipher 16 times and returns 16 words of keystream symbols
  *   in keystream_block.
- * 
+ *
  * Returns: void
- * 
+ *
  */
-extern void snow_keystream_fast(unsigned long *keystream_block);
+extern void snow_keystream_fast(uint32 *keystream_block);
 #endif

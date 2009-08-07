@@ -13,6 +13,7 @@ using boost::thread;
 
 bool RandomnessCache::useCache = true;
 bool RandomnessCache::runGeneration = false;
+bool RandomnessCache::isInitialized = false;
 uint32 RandomnessCache::cacheLimit = RANDOMNESS_CACHE_DEFAULT_SIZE;
 boost::mutex RandomnessCache::theMutex;
 boost::condition RandomnessCache::waitCondition;
@@ -51,6 +52,15 @@ void RandomnessCache::operator() () {
 
 	WRITE_TO_LOG_NETNODE (LOG_DEBUG, "Stopped randomness thread.");
 
+}
+
+
+void RandomnessCache::Initialize() {
+    if (isInitialized)
+        return;
+
+    rng.Seed ();
+    isInitialized = true;
 }
 
 

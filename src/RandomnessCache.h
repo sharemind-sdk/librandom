@@ -41,6 +41,11 @@ public:
 	void operator ()();
 
 	/**
+	 Initializes the cache by seeding randomness
+	*/
+	static void Initialize();
+
+	/**
 	 Fills a vector with random values
 
 	 \param[in] vec the vector of values to fill
@@ -87,6 +92,11 @@ public:
 	}
 
 private:
+
+	/**
+	 * True, if the cache is ready to generate stuff
+	 */
+	static bool isInitialized;
 
 	/**
 	 * The configuration value that enables and disables the cache.
