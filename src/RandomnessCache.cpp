@@ -17,7 +17,7 @@ uint32 RandomnessCache::cacheLimit = RANDOMNESS_CACHE_DEFAULT_SIZE;
 boost::mutex RandomnessCache::theMutex;
 boost::condition RandomnessCache::waitCondition;
 std::deque<val_t> RandomnessCache::randomness;
-CryptoPP::DefaultAutoSeededRNG RandomnessCache::strongRNG;
+FastRandom RandomnessCache::rng;
 
 RandomnessCache::RandomnessCache () { }
 
@@ -40,7 +40,7 @@ void RandomnessCache::operator() () {
 		if (RandomnessCache::randomness.size () < cacheLimit) {
 			boost::mutex::scoped_lock lock (RandomnessCache::theMutex);
 			for (uint32 i = 0; i < RANDOMNESS_GENERATION_PIECE; i++) {
-				RandomnessCache::randomness.push_back (RandomnessCache::strongRNG.GenerateWord32 ());
+				RandomnessCache::randomness.push_back (RandomnessCache::rng.Generate ());
 			}
 			//WRITE_TO_LOG (LOG_FULLDEBUG, "Randomness cache size " << RandomnessCache::randomness.size () << ".");
 			waitCondition.notify_all();
@@ -68,7 +68,7 @@ uint32 RandomnessCache::FillVector(val_vector_t& vec, uint32 start, uint32 end) 
     if (!useCache || !runGeneration) {
 
         for (uint32 i = start; i < end; i++) {
-            vec[i] = RandomnessCache::strongRNG.GenerateWord32 ();
+            vec[i] = RandomnessCache::rng.Generate ();
             count++;
         }
 
@@ -99,7 +99,7 @@ val_t RandomnessCache::Generate() {
 	boost::mutex::scoped_lock lock (RandomnessCache::theMutex);
 
 	if (!useCache || !runGeneration) {
-		return RandomnessCache::strongRNG.GenerateWord32 ();
+		return RandomnessCache::rng.Generate ();
 	}
 
 	// Check if we have enough

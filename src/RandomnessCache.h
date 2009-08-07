@@ -10,7 +10,6 @@
 #define RANDOMNESSCACHE_H
 
 #include <deque>
-#include <osrng.h>
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
 
@@ -18,11 +17,9 @@
 #define RANDOMNESS_GENERATION_PIECE 1000
 
 /**
- This class is the randomness generator.
+ This class manages the randomness cache filled in the background
 
- It runs in the background and fills a cache.
- The implementation currently relies on the ANSI X9.17 Appendix C
- compliant generator from the CryptoPP library.
+ The randomness is taken from the FastRandom class.
  */
 class RandomnessCache {
 public:
@@ -124,7 +121,7 @@ private:
 	/**
 	 The actual generator
 	 */
-	static CryptoPP::DefaultAutoSeededRNG strongRNG;
+	static FastRandom rng;
 
 };
 
