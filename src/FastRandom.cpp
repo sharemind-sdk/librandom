@@ -37,7 +37,7 @@ val_t FastRandom::Generate () {
 
 
 	if (keystream_ready == 0) {
-		snow_keystream_fast((unsigned long*)&keystream);
+		snow_keystream_fast(keystream);
 		keystream_ready = 16;
 	}
 	keystream_ready--;
