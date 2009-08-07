@@ -93,12 +93,14 @@ uint32 RandomnessCache::FillVector(val_vector_t& vec, uint32 start, uint32 end) 
             }
         }
 
+        uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
         for (uint32 i = start; i < end; i++) {
             // \todo See if this can be done more efficiently, some iterator magic maybe
             vec[i] = randomness.front ();
             randomness.pop_front ();
             count++;
         }
+        ExecutionProfiler::EndSection (methodSectionId);
     }
 
 	return count;

@@ -14,7 +14,7 @@
 #include "boost/thread/condition.hpp"
 
 #define RANDOMNESS_CACHE_DEFAULT_SIZE 10000000
-#define RANDOMNESS_GENERATION_PIECE 1000
+#define RANDOMNESS_GENERATION_PIECE 100000
 
 /**
  This class manages the randomness cache filled in the background

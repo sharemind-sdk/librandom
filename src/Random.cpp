@@ -26,8 +26,8 @@ val_t Random::Generate() {
 
 
 uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
-	uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
+	//uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
 	uint32 rv = RandomnessCache::FillVector (vec, start, end);
-	ExecutionProfiler::EndSection (methodSectionId);
+	//ExecutionProfiler::EndSection (methodSectionId);
 	return rv;
 }
