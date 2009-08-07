@@ -17,6 +17,7 @@ OpenSSLRandomEngine::~OpenSSLRandomEngine() { }
 
 void OpenSSLRandomEngine::Seed () { 
 	// Possibly incorporate more entropy
+	WRITE_TO_LOG (LOG_FULLDEBUG, "Seeding OpenSSL randomness engine.");	
 }
 
 

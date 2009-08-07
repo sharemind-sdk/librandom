@@ -16,6 +16,8 @@ Snow2RandomEngine::Snow2RandomEngine () {
 Snow2RandomEngine::~Snow2RandomEngine () {}
 
 void Snow2RandomEngine::Seed () {
+
+	WRITE_TO_LOG (LOG_FULLDEBUG, "Seeding SNOW 2 randomness engine.");
 	// Generate the key
 	OpenSSLRandomEngine rng;
 	rng.GenerateBytes (snowkey, 32);
