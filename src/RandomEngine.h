@@ -6,32 +6,37 @@
  * Main contributors:
  * Dan Bogdanov (dan@cyber.ee)
  */
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef RANDOMENGINE_H
+#define RANDOMENGINE_H
+
+enum RandomEngines {
+	RNG_SNOW2,
+	RNG_OPENSSL
+};
 
 /**
- This class is a front end to randomness generation.
+ This class is an abstract randomness generator
  */
-class Random {
+class RandomEngine {
 
 public:
 
 	/**
-	 The constructor is private in a singleton
-	 */
-	Random();
-	
-	/**
-	 The destructor of the randomness generator
+	 RNG destructor
 	*/
-	virtual ~Random();
+	virtual ~RandomEngine() = 0;
+
+	/**
+	 Seeds the generator
+	*/
+	virtual void Seed() = 0;
 
 	/**
 	 Generates a single random value
 
 	 \returns a single 32-bit random integer
 	*/
-	val_t Generate();
+	virtual val_t Generate() = 0;
 
 	/**
 	 Fills a vector with random values
@@ -42,15 +47,8 @@ public:
 	 
 	 \return the number of values generated
 	*/
-	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
-
-private:
-	
-	/**
-	 The actual engine used to generate randomness
-	 */
-	RandomEngine* engine;
+	virtual uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end) = 0;
 
 };
 
-#endif // RANDOM_H
+#endif // RANDOMENGINE_H

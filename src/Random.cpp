@@ -12,8 +12,18 @@
 
 
 Random::Random() {
-    // We do this here so that it gets randomized in any case
-    RandomnessCache::Initialize();
+	if (NodeConfiguration::rngEngine == RNG_SNOW2) {
+		engine = new Snow2RandomEngine ();
+		WRITE_TO_LOG (LOG_DEBUG, "Using SNOW 2 randomness engine.");
+	} else 	if (NodeConfiguration::rngEngine == RNG_OPENSSL) {
+		engine = new OpenSSLRandomEngine ();
+		WRITE_TO_LOG (LOG_DEBUG, "Using OpenSSL randomness engine.");
+	} else {
+		engine = new Snow2RandomEngine ();
+		WRITE_TO_LOG (LOG_DEBUG, "Defaulting to SNOW 2 randomness engine.");
+	}
+	assert (engine);
+	engine->Seed ();
 }
 
 
@@ -21,13 +31,21 @@ Random::~Random() { }
 
 
 val_t Random::Generate() {
-	return RandomnessCache::Generate ();
+	return engine->Generate ();
 }
 
 
 uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
-	//uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
-	uint32 rv = RandomnessCache::FillVector (vec, start, end);
-	//ExecutionProfiler::EndSection (methodSectionId);
+    // Verify range
+	if (start >= vec.size () || end > vec.size () || start > end) {
+		WRITE_TO_LOG (LOG_MINIMAL, "Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
+		return 0;
+	}
+
+	uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
+	uint32 rv = engine->FillVector (vec, start, end);
+	ExecutionProfiler::EndSection (methodSectionId);
 	return rv;
 }
+
+RandomEngine::~RandomEngine() { }
