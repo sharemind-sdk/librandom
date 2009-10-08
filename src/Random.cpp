@@ -10,8 +10,7 @@
  */
 
 #include <GetTime.h>
-#include "Sharemind.h"
-
+#include "common/CommonLibrary.h"
 
 Random::Random() {
 	if (NodeConfiguration::rngEngine == RNG_SNOW2) {

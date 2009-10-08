@@ -10,7 +10,7 @@
  */
 
 #include <GetTime.h>
-#include "Sharemind.h"
+#include "common/CommonLibrary.h"
 
 OpenSSLRandomEngine::OpenSSLRandomEngine() { }
 
