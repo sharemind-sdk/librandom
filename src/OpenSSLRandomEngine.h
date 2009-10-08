@@ -53,7 +53,7 @@ public:
 	/**
 	 Fills a vector with random values
 	 
-	 \param[in] vec the vector of values to fill
+	 \param[out] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
 	 
@@ -64,7 +64,7 @@ public:
 	/**
 	 Fills the given byte array
 	 
-	 \param[in] ptr a pointer to a char array to fill
+	 \param[out] ptr a pointer to a char array to fill
 	 \param[in] num the number of bytes to generate
 	*/
 	void GenerateBytes(uint8* ptr, uint32 num);

@@ -38,7 +38,7 @@ public:
 	/**
 	 Fills a vector with random values
 	 
-	 \param[in] vec the vector of values to fill
+	 \param[out] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
 	 

@@ -11,8 +11,13 @@
 #ifndef RANDOMENGINE_H
 #define RANDOMENGINE_H
 
+/**
+ * The randomness engines available in the code.
+ */	
 enum RandomEngines {
+	/*! An engine based on the SNOW2 stream cipher */
 	RNG_SNOW2,
+	/*! An engine based on the OpenSSL RAND_bytes function */
 	RNG_OPENSSL
 };
 
@@ -43,7 +48,7 @@ public:
 	/**
 	 Fills a vector with random values
 	 
-	 \param[in] vec the vector of values to fill
+	 \param[out] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
 	 
