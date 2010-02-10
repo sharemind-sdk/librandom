@@ -28,7 +28,10 @@ Random::Random() {
 }
 
 
-Random::~Random() { }
+Random::~Random() {
+    if (engine)
+        delete (engine);
+}
 
 
 val_t Random::Generate() {
