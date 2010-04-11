@@ -19,9 +19,14 @@ class Random {
 public:
 
 	/**
-	 The constructor is private in a singleton
+	 The constructor
 	 */
 	Random();
+
+	/**
+	 The constructor
+	 */
+	Random(RandomEngines engine);
 	
 	/**
 	 The destructor of the randomness generator

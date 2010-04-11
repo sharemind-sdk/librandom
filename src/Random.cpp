@@ -13,10 +13,18 @@
 #include "common/CommonLibrary.h"
 
 Random::Random() {
-	if (NodeConfiguration::rngEngine == RNG_SNOW2) {
+	engine = new Snow2RandomEngine ();
+	WRITE_TO_LOG (LOG_DEBUG, "Defaulting to SNOW 2 randomness engine.");
+	assert (engine);
+	engine->Seed ();
+}
+
+
+Random::Random(RandomEngines selectedEngine) {
+	if (selectedEngine == RNG_SNOW2) {
 		engine = new Snow2RandomEngine ();
 		WRITE_TO_LOG (LOG_DEBUG, "Using SNOW 2 randomness engine.");
-	} else 	if (NodeConfiguration::rngEngine == RNG_OPENSSL) {
+	} else 	if (selectedEngine == RNG_OPENSSL) {
 		engine = new OpenSSLRandomEngine ();
 		WRITE_TO_LOG (LOG_DEBUG, "Using OpenSSL randomness engine.");
 	} else {
