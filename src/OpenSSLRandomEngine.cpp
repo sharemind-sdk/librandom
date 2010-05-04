@@ -12,14 +12,16 @@
 #include <GetTime.h>
 #include "common/CommonLibrary.h"
 
-OpenSSLRandomEngine::OpenSSLRandomEngine() { }
+OpenSSLRandomEngine::OpenSSLRandomEngine(Console* console)
+  : RandomEngine (console)
+{ }
 
 
 OpenSSLRandomEngine::~OpenSSLRandomEngine() { }
 
 void OpenSSLRandomEngine::Seed () { 
 	// Possibly incorporate more entropy
-	WRITE_TO_LOG (LOG_FULLDEBUG, "Seeding OpenSSL randomness engine.");	
+	WRITE_LOG_FULLDEBUG (m_console, "Seeding OpenSSL randomness engine.");	
 }
 
 

@@ -21,12 +21,12 @@ public:
 	/**
 	 The constructor
 	 */
-	Random();
+	Random(Console* console);
 
 	/**
 	 The constructor
 	 */
-	Random(RandomEngines engine);
+	Random(Console* console, RandomEngines engine);
 	
 	/**
 	 The destructor of the randomness generator
@@ -57,6 +57,8 @@ private:
 	 The actual engine used to generate randomness
 	 */
 	RandomEngine* engine;
+	
+	Console* m_console;
 
 };
 

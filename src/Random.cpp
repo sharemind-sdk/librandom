@@ -12,24 +12,28 @@
 #include <GetTime.h>
 #include "common/CommonLibrary.h"
 
-Random::Random() {
-	engine = new Snow2RandomEngine ();
-	WRITE_TO_LOG (LOG_DEBUG, "Defaulting to SNOW 2 randomness engine.");
+Random::Random(Console* console) 
+  : m_console (console) 
+{
+	engine = new Snow2RandomEngine (m_console);
+	WRITE_LOG_DEBUG (m_console, "Defaulting to SNOW 2 randomness engine.");
 	assert (engine);
 	engine->Seed ();
 }
 
 
-Random::Random(RandomEngines selectedEngine) {
+Random::Random(Console* console, RandomEngines selectedEngine)
+  : m_console (console) 
+{
 	if (selectedEngine == RNG_SNOW2) {
-		engine = new Snow2RandomEngine ();
-		WRITE_TO_LOG (LOG_DEBUG, "Using SNOW 2 randomness engine.");
+		engine = new Snow2RandomEngine (m_console);
+		WRITE_LOG_DEBUG (m_console, "Using SNOW 2 randomness engine.");
 	} else 	if (selectedEngine == RNG_OPENSSL) {
-		engine = new OpenSSLRandomEngine ();
-		WRITE_TO_LOG (LOG_DEBUG, "Using OpenSSL randomness engine.");
+		engine = new OpenSSLRandomEngine (m_console);
+		WRITE_LOG_DEBUG (m_console, "Using OpenSSL randomness engine.");
 	} else {
-		engine = new Snow2RandomEngine ();
-		WRITE_TO_LOG (LOG_DEBUG, "Defaulting to SNOW 2 randomness engine.");
+		engine = new Snow2RandomEngine (m_console);
+		WRITE_LOG_DEBUG (m_console, "Defaulting to SNOW 2 randomness engine.");
 	}
 	assert (engine);
 	engine->Seed ();
@@ -50,7 +54,7 @@ val_t Random::Generate() {
 uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
     // Verify range
 	if (start >= vec.size () || end > vec.size () || start > end) {
-		WRITE_TO_LOG (LOG_MINIMAL, "Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
+		WRITE_LOG_ERROR (m_console, "[Random] Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
 		return 0;
 	}
 

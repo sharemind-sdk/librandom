@@ -27,7 +27,7 @@ public:
 	/**
 	 Constructs the generator
 	 */
-	Snow2RandomEngine ();
+	Snow2RandomEngine (Console* console);
 
 	/**
 	 The destructor of the randomness generator

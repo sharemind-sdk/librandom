@@ -28,6 +28,10 @@ class RandomEngine {
 
 public:
 
+	RandomEngine (Console* console) 
+	  : m_console (console)
+	{ }
+	
 	/**
 	 RNG destructor
 	*/
@@ -56,6 +60,10 @@ public:
 	*/
 	virtual uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end) = 0;
 
+protected:
+	
+	Console* m_console;
+	
 };
 
 #endif // RANDOMENGINE_H

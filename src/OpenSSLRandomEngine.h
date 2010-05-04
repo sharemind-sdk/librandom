@@ -25,7 +25,7 @@ public:
 	/**
 	 Constructs the generator and seeds it
 	 */
-	OpenSSLRandomEngine();
+	OpenSSLRandomEngine(Console* console);
 	
 	/**
 	 The destructor of the randomness generator
