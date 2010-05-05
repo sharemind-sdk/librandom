@@ -58,9 +58,9 @@ uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
 		return 0;
 	}
 
-	uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
+	//uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
 	uint32 rv = engine->FillVector (vec, start, end);
-	ExecutionProfiler::EndSection (methodSectionId);
+	//ExecutionProfiler::EndSection (methodSectionId);
 	return rv;
 }
 
