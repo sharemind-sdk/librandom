@@ -10,7 +10,7 @@
  */
 
 #include <GetTime.h>
-#include "common/CommonLibrary.h"
+#include "../common/CommonLibrary.h"
 
 OpenSSLRandomEngine::OpenSSLRandomEngine(Console* console)
   : RandomEngine (console)

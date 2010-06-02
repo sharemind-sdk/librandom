@@ -10,7 +10,7 @@
  */
 
 #include <GetTime.h>
-#include "common/CommonLibrary.h"
+#include "../common/CommonLibrary.h"
 
 Random::Random(Console* console) 
   : m_console (console) 

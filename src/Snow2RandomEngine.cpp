@@ -9,7 +9,7 @@
  * Dan Bogdanov (dan@cyber.ee)
  */
 
-#include "common/CommonLibrary.h"
+#include "../common/CommonLibrary.h"
 
 Snow2RandomEngine::Snow2RandomEngine (Console* console) 
   : RandomEngine (console) {
