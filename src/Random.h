@@ -21,13 +21,13 @@ public:
 	/**
 	 The constructor
 	 */
-	Random(Console* console);
+	Random(Logger* logger);
 
 	/**
 	 The constructor
 	 */
-	Random(Console* console, RandomEngines engine);
-	
+	Random(Logger* logger, RandomEngines engine);
+
 	/**
 	 The destructor of the randomness generator
 	*/
@@ -42,23 +42,23 @@ public:
 
 	/**
 	 Fills a vector with random values
-	 
+
 	 \param[out] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
-	 
+
 	 \return the number of values generated
 	*/
 	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
 
 private:
-	
+
 	/**
 	 The actual engine used to generate randomness
 	 */
 	RandomEngine* engine;
-	
-	Console* m_console;
+
+	Logger* m_logger;
 
 };
 

@@ -11,8 +11,8 @@
 
 #include "../common/CommonLibrary.h"
 
-Snow2RandomEngine::Snow2RandomEngine (Console* console) 
-  : RandomEngine (console) {
+Snow2RandomEngine::Snow2RandomEngine (Logger* logger)
+  : RandomEngine (logger) {
 	keystream_ready = 0;
 }
 
@@ -20,9 +20,9 @@ Snow2RandomEngine::~Snow2RandomEngine () {}
 
 void Snow2RandomEngine::Seed () {
 
-	WRITE_LOG_FULLDEBUG (m_console, "[Snow2Random] Seeding SNOW 2 randomness engine.");
+	WRITE_LOG_FULLDEBUG (m_logger, "[Snow2Random] Seeding SNOW 2 randomness engine.");
 	// Generate the key
-	OpenSSLRandomEngine rng(m_console);
+	OpenSSLRandomEngine rng(m_logger);
 	rng.GenerateBytes (snowkey, 32);
 
 	// Make IVs random too

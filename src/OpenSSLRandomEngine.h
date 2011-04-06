@@ -25,8 +25,8 @@ public:
 	/**
 	 Constructs the generator and seeds it
 	 */
-	OpenSSLRandomEngine(Console* console);
-	
+	OpenSSLRandomEngine(Logger* logger);
+
 	/**
 	 The destructor of the randomness generator
 	*/
@@ -46,24 +46,24 @@ public:
 		unsigned char rbuf[4];
 		bool RANDbytesOK = (RAND_bytes(rbuf, 4) == 1);
 		assert (RANDbytesOK);
-		
+
 		return (uint32)(rbuf[3] << 24 | rbuf[2] << 16 | rbuf[1] << 8 | rbuf[0]);
 	}
-	
+
 	/**
 	 Fills a vector with random values
-	 
+
 	 \param[out] vec the vector of values to fill
 	 \param[in] start the index to start filling from
 	 \param[in] end the index to fill to (not included)
-	 
+
 	 \return the number of values generated
 	*/
 	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
-	
+
 	/**
 	 Fills the given byte array
-	 
+
 	 \param[out] ptr a pointer to a char array to fill
 	 \param[in] num the number of bytes to generate
 	*/

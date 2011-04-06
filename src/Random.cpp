@@ -12,28 +12,28 @@
 #include <GetTime.h>
 #include "../common/CommonLibrary.h"
 
-Random::Random(Console* console) 
-  : m_console (console) 
+Random::Random(Logger* logger)
+  : m_logger (logger)
 {
-	engine = new Snow2RandomEngine (m_console);
-	WRITE_LOG_DEBUG (m_console, "Defaulting to SNOW 2 randomness engine.");
+	engine = new Snow2RandomEngine (m_logger);
+	WRITE_LOG_DEBUG (m_logger, "Defaulting to SNOW 2 randomness engine.");
 	assert (engine);
 	engine->Seed ();
 }
 
 
-Random::Random(Console* console, RandomEngines selectedEngine)
-  : m_console (console) 
+Random::Random(Logger* logger, RandomEngines selectedEngine)
+  : m_logger (logger)
 {
 	if (selectedEngine == RNG_SNOW2) {
-		engine = new Snow2RandomEngine (m_console);
-		WRITE_LOG_DEBUG (m_console, "Using SNOW 2 randomness engine.");
+		engine = new Snow2RandomEngine (m_logger);
+		WRITE_LOG_DEBUG (m_logger, "Using SNOW 2 randomness engine.");
 	} else 	if (selectedEngine == RNG_OPENSSL) {
-		engine = new OpenSSLRandomEngine (m_console);
-		WRITE_LOG_DEBUG (m_console, "Using OpenSSL randomness engine.");
+		engine = new OpenSSLRandomEngine (m_logger);
+		WRITE_LOG_DEBUG (m_logger, "Using OpenSSL randomness engine.");
 	} else {
-		engine = new Snow2RandomEngine (m_console);
-		WRITE_LOG_DEBUG (m_console, "Defaulting to SNOW 2 randomness engine.");
+		engine = new Snow2RandomEngine (m_logger);
+		WRITE_LOG_DEBUG (m_logger, "Defaulting to SNOW 2 randomness engine.");
 	}
 	assert (engine);
 	engine->Seed ();
@@ -54,7 +54,7 @@ val_t Random::Generate() {
 uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
     // Verify range
 	if (start >= vec.size () || end > vec.size () || start > end) {
-		WRITE_LOG_ERROR (m_console, "[Random] Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
+		WRITE_LOG_ERROR (m_logger, "[Random] Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
 		return 0;
 	}
 
