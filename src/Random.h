@@ -21,12 +21,12 @@ public:
 	/**
 	 The constructor
 	 */
-	Random(Logger* logger);
+	Random(Logger& logger);
 
 	/**
 	 The constructor
 	 */
-	Random(Logger* logger, RandomEngines engine);
+	Random(Logger& logger, RandomEngines engine);
 
 	/**
 	 The destructor of the randomness generator
@@ -58,7 +58,7 @@ private:
 	 */
 	RandomEngine* engine;
 
-	Logger* m_logger;
+	Logger& m_logger;
 
 };
 

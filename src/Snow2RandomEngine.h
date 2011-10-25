@@ -11,7 +11,7 @@
 #ifndef SNOW2RANDOMENGINE_H
 #define SNOW2RANDOMENGINE_H
 
-#include "../common/RandomEngine.h"
+#include "common/RandomEngine.h"
 extern "C" {
 #include "snow2_fast.h"
 }
@@ -27,7 +27,7 @@ public:
 	/**
 	 Constructs the generator
 	 */
-	Snow2RandomEngine (Logger* logger);
+	Snow2RandomEngine (Logger& logger);
 
 	/**
 	 The destructor of the randomness generator

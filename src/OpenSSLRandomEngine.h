@@ -11,7 +11,7 @@
 #ifndef OPENSSLRANDOMENGINE_H
 #define OPENSSLRANDOMENGINE_H
 
-#include "../common/RandomEngine.h"
+#include "common/RandomEngine.h"
 #include <openssl/rand.h>
 
 
@@ -25,7 +25,7 @@ public:
 	/**
 	 Constructs the generator and seeds it
 	 */
-	OpenSSLRandomEngine(Logger* logger);
+	OpenSSLRandomEngine(Logger& logger);
 
 	/**
 	 The destructor of the randomness generator

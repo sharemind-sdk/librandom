@@ -10,9 +10,10 @@
  */
 
 #include <GetTime.h>
-#include "../common/CommonLibrary.h"
+#include "common/Logger.h"
+#include "common/OpenSSLRandomEngine.h"
 
-OpenSSLRandomEngine::OpenSSLRandomEngine(Logger* logger)
+OpenSSLRandomEngine::OpenSSLRandomEngine(Logger& logger)
   : RandomEngine (logger)
 { }
 

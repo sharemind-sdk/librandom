@@ -1,15 +1,16 @@
 /*
  * This file is a part of the Sharemind framework.
+ * Copyright (C) Cybernetica AS
  *
- * Copyright (C) AS Cybernetica
  * All rights are reserved. Reproduction in whole or part is prohibited
- * without the written consent of the copyright owner.
- *
- * Main contributors:
- * Dan Bogdanov (dan@cyber.ee)
+ * without the written consent of the copyright owner. The usage of this
+ * code is subject to the appropriate license agreement.
  */
 #ifndef RANDOMENGINE_H
 #define RANDOMENGINE_H
+
+#include "common/SharemindTypes.h"
+#include "common/Logger.h"
 
 /**
  * The randomness engines available in the code.
@@ -28,7 +29,7 @@ class RandomEngine {
 
 public:
 
-	RandomEngine (Logger* logger)
+	RandomEngine (Logger& logger)
 	  : m_logger (logger)
 	{ }
 
@@ -62,7 +63,7 @@ public:
 
 protected:
 
-	Logger* m_logger;
+	Logger& m_logger;
 
 };
 
