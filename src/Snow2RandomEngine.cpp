@@ -10,6 +10,8 @@
 #include "common/Snow2RandomEngine.h"
 #include "common/OpenSSLRandomEngine.h"
 
+using namespace sharemind;
+
 Snow2RandomEngine::Snow2RandomEngine (Logger& logger)
   : RandomEngine (logger)
   , keystream_ready (0)

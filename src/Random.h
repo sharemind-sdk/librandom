@@ -1,15 +1,17 @@
 /*
  * This file is a part of the Sharemind framework.
+ * Copyright (C) Cybernetica AS
  *
- * Copyright (C) AS Cybernetica
  * All rights are reserved. Reproduction in whole or part is prohibited
- * without the written consent of the copyright owner.
- *
- * Main contributors:
- * Dan Bogdanov (dan@cyber.ee)
+ * without the written consent of the copyright owner. The usage of this
+ * code is subject to the appropriate license agreement.
  */
+
 #ifndef RANDOM_H
 #define RANDOM_H
+
+namespace sharemind {
+
 
 /**
  This class is a front end to randomness generation.
@@ -61,5 +63,7 @@ private:
 	Logger& m_logger;
 
 };
+
+} // namespace sharemind
 
 #endif // RANDOM_H

@@ -6,11 +6,14 @@
  * without the written consent of the copyright owner. The usage of this
  * code is subject to the appropriate license agreement.
  */
+
 #ifndef RANDOMENGINE_H
 #define RANDOMENGINE_H
 
 #include "common/SharemindTypes.h"
 #include "common/Logger.h"
+
+namespace sharemind {
 
 /**
  * The randomness engines available in the code.
@@ -66,5 +69,7 @@ protected:
 	Logger& m_logger;
 
 };
+
+} // namespace sharemind
 
 #endif // RANDOMENGINE_H

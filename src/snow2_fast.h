@@ -23,7 +23,6 @@
 #ifndef SNOW2_FAST_H
 #define SNOW2_FAST_H
 
-
 /* Exported functions */
 
 
@@ -47,9 +46,9 @@
  *         ...
  */
 extern void snow_loadkey_fast(uint8 *key,
-			       uint32 keysize,
-			       uint32 IV3, uint32 IV2,
-			       uint32 IV1, uint32 IV0);
+				   uint32 keysize,
+				   uint32 IV3, uint32 IV2,
+				   uint32 IV1, uint32 IV0);
 
 /*
  * Function: snow_keystream_fast
@@ -62,4 +61,5 @@ extern void snow_loadkey_fast(uint8 *key,
  *
  */
 extern void snow_keystream_fast(uint32 *keystream_block);
+
 #endif

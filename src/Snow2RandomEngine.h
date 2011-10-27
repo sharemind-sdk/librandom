@@ -1,20 +1,23 @@
 /*
  * This file is a part of the Sharemind framework.
+ * Copyright (C) Cybernetica AS
  *
- * Copyright (C) AS Cybernetica
  * All rights are reserved. Reproduction in whole or part is prohibited
- * without the written consent of the copyright owner.
- *
- * Main contributors:
- * Dan Bogdanov (dan@cyber.ee)
+ * without the written consent of the copyright owner. The usage of this
+ * code is subject to the appropriate license agreement.
  */
+
 #ifndef SNOW2RANDOMENGINE_H
 #define SNOW2RANDOMENGINE_H
 
 #include "common/RandomEngine.h"
+namespace sharemind {
+
 extern "C" {
 #include "snow2_fast.h"
 }
+
+
 
 /**
  A randomness engine based on the SNOW 2 stream cipher.
@@ -70,5 +73,7 @@ private:
 	uint32 keystream[16];
 
 };
+
+} // namespace sharemind
 
 #endif // SNOW2RANDOMENGINE_H

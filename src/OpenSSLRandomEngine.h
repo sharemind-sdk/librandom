@@ -1,19 +1,19 @@
 /*
  * This file is a part of the Sharemind framework.
+ * Copyright (C) Cybernetica AS
  *
- * Copyright (C) AS Cybernetica
  * All rights are reserved. Reproduction in whole or part is prohibited
- * without the written consent of the copyright owner.
- *
- * Main contributors:
- * Dan Bogdanov (dan@cyber.ee)
+ * without the written consent of the copyright owner. The usage of this
+ * code is subject to the appropriate license agreement.
  */
+
 #ifndef OPENSSLRANDOMENGINE_H
 #define OPENSSLRANDOMENGINE_H
 
 #include "common/RandomEngine.h"
 #include <openssl/rand.h>
 
+namespace sharemind {
 
 /**
  A randomness engine based on OpenSSL RAND_bytes()
@@ -69,5 +69,7 @@ public:
 	*/
 	void GenerateBytes(uint8* ptr, uint32 num);
 };
+
+} // namespace sharemind
 
 #endif // OPENSSLRANDOMENGINE_H
