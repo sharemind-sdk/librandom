@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#include "common/Snow2RandomEngine.h"
-#include "common/OpenSSLRandomEngine.h"
+#include "common/Random/Snow2RandomEngine.h"
+#include "common/Random/OpenSSLRandomEngine.h"
 
 using namespace sharemind;
 

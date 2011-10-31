@@ -10,6 +10,9 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
+#include "common/Random/RandomEngine.h"
+#include "common/Logger/Logger.h"
+
 namespace sharemind {
 
 

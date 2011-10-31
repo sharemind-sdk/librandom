@@ -11,7 +11,7 @@
 #define RANDOMENGINE_H
 
 #include "common/SharemindTypes.h"
-#include "common/Logger.h"
+#include "common/Logger/Logger.h"
 
 namespace sharemind {
 

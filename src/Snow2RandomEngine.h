@@ -10,7 +10,7 @@
 #ifndef SNOW2RANDOMENGINE_H
 #define SNOW2RANDOMENGINE_H
 
-#include "common/RandomEngine.h"
+#include "common/Random/RandomEngine.h"
 namespace sharemind {
 
 extern "C" {

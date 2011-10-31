@@ -8,8 +8,8 @@
  */
 
 #include <GetTime.h>
-#include "common/Logger.h"
-#include "common/OpenSSLRandomEngine.h"
+#include "common/Logger/Logger.h"
+#include "common/Random/OpenSSLRandomEngine.h"
 
 using namespace sharemind;
 

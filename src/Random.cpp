@@ -8,7 +8,10 @@
  */
 
 #include <GetTime.h>
-#include "../common/CommonLibrary.h"
+#include "common/Logger/Logger.h"
+#include "common/Random/Random.h"
+#include "common/Random/Snow2RandomEngine.h"
+#include "common/Random/OpenSSLRandomEngine.h"
 
 using namespace sharemind;
 
