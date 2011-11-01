@@ -65,12 +65,12 @@ public:
 
 	 \return the number of values generated
 	*/
-	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
+	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
 
 private:
-	uint8 snowkey[32];
-	uint8 keystream_ready;
-	uint32 keystream[16];
+	uint8_t snowkey[32];
+	uint8_t keystream_ready;
+	uint32_t keystream[16];
 
 };
 

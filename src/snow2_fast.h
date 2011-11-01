@@ -23,6 +23,7 @@
 #ifndef SNOW2_FAST_H
 #define SNOW2_FAST_H
 
+#include <stdint.h>
 /* Exported functions */
 
 
@@ -45,10 +46,10 @@
  *        key[3]-> lsb of s15
  *         ...
  */
-extern void snow_loadkey_fast(uint8 *key,
-				   uint32 keysize,
-				   uint32 IV3, uint32 IV2,
-				   uint32 IV1, uint32 IV0);
+extern void snow_loadkey_fast(uint8_t *key,
+				   uint32_t keysize,
+				   uint32_t IV3, uint32_t IV2,
+				   uint32_t IV1, uint32_t IV0);
 
 /*
  * Function: snow_keystream_fast
@@ -60,6 +61,6 @@ extern void snow_loadkey_fast(uint8 *key,
  * Returns: void
  *
  */
-extern void snow_keystream_fast(uint32 *keystream_block);
+extern void snow_keystream_fast(uint32_t *keystream_block);
 
 #endif

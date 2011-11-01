@@ -26,15 +26,15 @@ void OpenSSLRandomEngine::Seed () {
 }
 
 
-void OpenSSLRandomEngine::GenerateBytes(uint8* ptr, uint32 num) {
+void OpenSSLRandomEngine::GenerateBytes(uint8_t* ptr, size_t num) {
 	bool RANDbytesOK = (RAND_bytes(ptr, num) == 1);
 	assert (RANDbytesOK);
 }
 
 
-uint32 OpenSSLRandomEngine::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
-	uint32 count = 0;
-	for (uint32 i = start; i < end; i++) {
+size_t OpenSSLRandomEngine::FillVector(val_vector_t& vec, size_t start, size_t end) {
+	size_t count = 0;
+	for (size_t i = start; i < end; i++) {
 		vec[i] = Generate ();
 		count++;
 	}

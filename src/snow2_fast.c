@@ -11,17 +11,7 @@
  */
 
 
-// These are from Sharemind
-
-/**
- A 32-bit unsigned integer.
-*/
-typedef unsigned int uint32;
-
-/**
- An 8-bit unsigned integer.
-*/
-typedef unsigned char uint8;
+#include <stdint.h>
 
 #include "snow2_fast.h"
 #include "snow2tab.h"
@@ -40,8 +30,8 @@ typedef unsigned char uint8;
 #endif
 
 
-uint32 s15,s14,s13,s12,s11,s10,s9,s8,s7,s6,s5,s4,s3,s2,s1,s0;
-uint32 outfrom_fsm,fsmtmp,r1,r2;
+uint32_t s15,s14,s13,s12,s11,s10,s9,s8,s7,s6,s5,s4,s3,s2,s1,s0;
+uint32_t outfrom_fsm,fsmtmp,r1,r2;
 /*
  * Function:  snow_loadkey_fast
  *
@@ -73,19 +63,19 @@ uint32 outfrom_fsm,fsmtmp,r1,r2;
  *          ...
  *        key[31]-> lsb of k_0
  */
-void snow_loadkey_fast(uint8 *key,uint32 keysize,uint32 IV3,uint32 IV2,uint32 IV1,uint32 IV0)
+void snow_loadkey_fast(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,uint32_t IV1,uint32_t IV0)
 {
  int i;
 
   if (keysize==128) {
-    s15=(((uint32)*(key+0))<<24) | (((uint32)*(key+1))<<16) |
-      (((uint32)*(key+2))<<8) | (((uint32)*(key+3)));
-    s14=(((uint32)*(key+4))<<24) | (((uint32)*(key+5))<<16) |
-      (((uint32)*(key+6))<<8) | (((uint32)*(key+7)));
-    s13=(((uint32)*(key+8))<<24) | (((uint32)*(key+9))<<16) |
-      (((uint32)*(key+10))<<8) | (((uint32)*(key+11)));
-    s12=(((uint32)*(key+12))<<24) | (((uint32)*(key+13))<<16) |
-      (((uint32)*(key+14))<<8) | (((uint32)*(key+15)));
+    s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
+      (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
+    s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
+      (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
+    s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
+      (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
+    s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
+      (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
     s11 =~s15; /* bitwise inverse */
     s10 =~s14;
     s9  =~s13;
@@ -100,22 +90,22 @@ void snow_loadkey_fast(uint8 *key,uint32 keysize,uint32 IV3,uint32 IV2,uint32 IV
     s0  =~s12;
     }
   else {  /* assume keysize=256 */
-     s15=(((uint32)*(key+0))<<24) | (((uint32)*(key+1))<<16) |
-      (((uint32)*(key+2))<<8) | (((uint32)*(key+3)));
-    s14=(((uint32)*(key+4))<<24) | (((uint32)*(key+5))<<16) |
-      (((uint32)*(key+6))<<8) | (((uint32)*(key+7)));
-    s13=(((uint32)*(key+8))<<24) | (((uint32)*(key+9))<<16) |
-      (((uint32)*(key+10))<<8) | (((uint32)*(key+11)));
-    s12=(((uint32)*(key+12))<<24) | (((uint32)*(key+13))<<16) |
-      (((uint32)*(key+14))<<8) | (((uint32)*(key+15)));
-    s11=(((uint32)*(key+16))<<24) | (((uint32)*(key+17))<<16) |
-      (((uint32)*(key+18))<<8) | (((uint32)*(key+19)));
-    s10=(((uint32)*(key+20))<<24) | (((uint32)*(key+21))<<16) |
-      (((uint32)*(key+22))<<8) | (((uint32)*(key+23)));
-    s9=(((uint32)*(key+24))<<24) | (((uint32)*(key+25))<<16) |
-      (((uint32)*(key+26))<<8) | (((uint32)*(key+27)));
-    s8=(((uint32)*(key+28))<<24) | (((uint32)*(key+29))<<16) |
-      (((uint32)*(key+30))<<8) | (((uint32)*(key+31)));
+     s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
+      (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
+    s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
+      (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
+    s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
+      (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
+    s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
+      (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
+    s11=(((uint32_t)*(key+16))<<24) | (((uint32_t)*(key+17))<<16) |
+      (((uint32_t)*(key+18))<<8) | (((uint32_t)*(key+19)));
+    s10=(((uint32_t)*(key+20))<<24) | (((uint32_t)*(key+21))<<16) |
+      (((uint32_t)*(key+22))<<8) | (((uint32_t)*(key+23)));
+    s9=(((uint32_t)*(key+24))<<24) | (((uint32_t)*(key+25))<<16) |
+      (((uint32_t)*(key+26))<<8) | (((uint32_t)*(key+27)));
+    s8=(((uint32_t)*(key+28))<<24) | (((uint32_t)*(key+29))<<16) |
+      (((uint32_t)*(key+30))<<8) | (((uint32_t)*(key+31)));
     s7 =~s15; /* bitwise inverse */
     s6 =~s14;
     s5 =~s13;
@@ -249,7 +239,7 @@ void snow_loadkey_fast(uint8 *key,uint32 keysize,uint32 IV3,uint32 IV2,uint32 IV
  *
  */
 
-INLINE void snow_keystream_fast(uint32 *keystream_block)
+INLINE void snow_keystream_fast(uint32_t *keystream_block)
 {
 
       s0 =a_mul(s0 )^ s2 ^ainv_mul(s11 );

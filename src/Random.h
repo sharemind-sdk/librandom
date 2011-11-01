@@ -31,7 +31,7 @@ public:
 	/**
 	 The constructor
 	 */
-	Random(Logger& logger, RandomEngines engine);
+	Random(Logger& logger, RandomEngineType engine);
 
 	/**
 	 The destructor of the randomness generator
@@ -54,7 +54,7 @@ public:
 
 	 \return the number of values generated
 	*/
-	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
+	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
 
 private:
 

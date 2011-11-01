@@ -47,7 +47,7 @@ public:
 		bool RANDbytesOK = (RAND_bytes(rbuf, 4) == 1);
 		assert (RANDbytesOK);
 
-		return (uint32)(rbuf[3] << 24 | rbuf[2] << 16 | rbuf[1] << 8 | rbuf[0]);
+		return (uint32_t)(rbuf[3] << 24 | rbuf[2] << 16 | rbuf[1] << 8 | rbuf[0]);
 	}
 
 	/**
@@ -59,7 +59,7 @@ public:
 
 	 \return the number of values generated
 	*/
-	uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end);
+	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
 
 	/**
 	 Fills the given byte array
@@ -67,7 +67,7 @@ public:
 	 \param[out] ptr a pointer to a char array to fill
 	 \param[in] num the number of bytes to generate
 	*/
-	void GenerateBytes(uint8* ptr, uint32 num);
+	void GenerateBytes(uint8_t* ptr, size_t num);
 };
 
 } // namespace sharemind

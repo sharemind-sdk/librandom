@@ -25,7 +25,7 @@ Random::Random(Logger& logger)
 }
 
 
-Random::Random(Logger& logger, RandomEngines selectedEngine)
+Random::Random(Logger& logger, RandomEngineType selectedEngine)
   : m_logger (logger)
 {
 	if (selectedEngine == RNG_SNOW2) {
@@ -54,7 +54,7 @@ val_t Random::Generate() {
 }
 
 
-uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
+size_t Random::FillVector(val_vector_t& vec, size_t start, size_t end) {
 	// Verify range
 	if (start >= vec.size () || end > vec.size () || start > end) {
 		WRITE_LOG_ERROR (m_logger, "[Random] Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
@@ -62,7 +62,7 @@ uint32 Random::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
 	}
 
 	//uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
-	uint32 rv = engine->FillVector (vec, start, end);
+	size_t rv = engine->FillVector (vec, start, end);
 	//ExecutionProfiler::EndSection (methodSectionId);
 	return rv;
 }

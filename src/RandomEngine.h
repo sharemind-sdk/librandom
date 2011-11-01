@@ -16,9 +16,9 @@
 namespace sharemind {
 
 /**
- * The randomness engines available in the code.
+ * The randomness engine types available in the code.
  */
-enum RandomEngines {
+enum RandomEngineType {
 	/*! An engine based on the SNOW2 stream cipher */
 	RNG_SNOW2,
 	/*! An engine based on the OpenSSL RAND_bytes function */
@@ -62,7 +62,7 @@ public:
 
 	 \return the number of values generated
 	*/
-	virtual uint32 FillVector(val_vector_t& vec, uint32 start, uint32 end) = 0;
+	virtual size_t FillVector(val_vector_t& vec, size_t start, size_t end) = 0;
 
 protected:
 

@@ -28,17 +28,17 @@ void Snow2RandomEngine::Seed () {
 	rng.GenerateBytes (snowkey, 32);
 
 	// Make IVs random too
-	uint32 iv0 = rng.Generate ();
-	uint32 iv1 = rng.Generate ();
-	uint32 iv2 = rng.Generate ();
-	uint32 iv3 = rng.Generate ();
+	uint32_t iv0 = rng.Generate ();
+	uint32_t iv1 = rng.Generate ();
+	uint32_t iv2 = rng.Generate ();
+	uint32_t iv3 = rng.Generate ();
 	snow_loadkey_fast (snowkey, 128, iv0, iv1, iv2, iv3);
 }
 
 
-uint32 Snow2RandomEngine::FillVector(val_vector_t& vec, uint32 start, uint32 end) {
-	uint32 count = 0;
-	for (uint32 i = start; i < end; i++) {
+size_t Snow2RandomEngine::FillVector(val_vector_t& vec, size_t start, size_t end) {
+	size_t count = 0;
+	for (size_t i = start; i < end; i++) {
 		vec[i] = Generate ();
 		count++;
 	}
