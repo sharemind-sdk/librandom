@@ -13,11 +13,11 @@
  * Synopsis:
  *   Defines multiplication with alpha and alpha^-1
  *   as well as the S-box
- *  
- *  
+ *
+ *
  */
-#ifndef SNOW2_TABLES
-#define SNOW2_TABLES
+#ifndef SHAREMINDCOMMON_SNOW2_TABLES
+#define SHAREMINDCOMMON_SNOW2_TABLES
 
 static unsigned long snow_alpha_mul[256]= {
         0x0,0xE19FCF13,0x6B973726,0x8A08F835,0xD6876E4C,0x3718A15F,0xBD10596A,0x5C8F9679,

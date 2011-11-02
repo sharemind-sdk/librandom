@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef SHAREMINDCOMMON_RANDOM_H
+#define SHAREMINDCOMMON_RANDOM_H
 
 #include "common/Random/RandomEngine.h"
 #include "common/Logger/Logger.h"
@@ -69,4 +69,4 @@ private:
 
 } // namespace sharemind
 
-#endif // RANDOM_H
+#endif // SHAREMINDCOMMON_RANDOM_H

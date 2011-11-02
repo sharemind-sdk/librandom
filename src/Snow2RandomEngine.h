@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SNOW2RANDOMENGINE_H
-#define SNOW2RANDOMENGINE_H
+#ifndef SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
+#define SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
 
 #include "common/Random/RandomEngine.h"
 namespace sharemind {
@@ -76,4 +76,4 @@ private:
 
 } // namespace sharemind
 
-#endif // SNOW2RANDOMENGINE_H
+#endif // SHAREMINDCOMMON_SNOW2RANDOMENGINE_H

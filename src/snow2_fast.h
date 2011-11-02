@@ -20,8 +20,8 @@
  *    Check snow2_fast.h for calling conventions.
  *
  */
-#ifndef SNOW2_FAST_H
-#define SNOW2_FAST_H
+#ifndef SHAREMINDCOMMON_SNOW2_FAST_H
+#define SHAREMINDCOMMON_SNOW2_FAST_H
 
 #include <stdint.h>
 /* Exported functions */

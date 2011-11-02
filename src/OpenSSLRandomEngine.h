@@ -7,8 +7,8 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef OPENSSLRANDOMENGINE_H
-#define OPENSSLRANDOMENGINE_H
+#ifndef SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
+#define SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
 
 #include "common/Random/RandomEngine.h"
 #include <openssl/rand.h>
@@ -72,4 +72,4 @@ public:
 
 } // namespace sharemind
 
-#endif // OPENSSLRANDOMENGINE_H
+#endif // SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
