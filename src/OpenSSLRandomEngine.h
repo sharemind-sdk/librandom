@@ -15,59 +15,18 @@
 
 namespace sharemind {
 
-/**
- A randomness engine based on OpenSSL RAND_bytes()
-*/
+/// A randomness engine based on OpenSSL RAND_bytes()
 class OpenSSLRandomEngine : public RandomEngine {
+public: /* Methods: */
 
-public:
+     /// Constructs the generator and seeds it
+    OpenSSLRandomEngine(Logger& logger);
 
-	/**
-	 Constructs the generator and seeds it
-	 */
-	OpenSSLRandomEngine(Logger& logger);
+    virtual ~OpenSSLRandomEngine();
 
-	/**
-	 The destructor of the randomness generator
-	*/
-	virtual ~OpenSSLRandomEngine();
+    void Seed();
 
-	/**
-	 Seeds the generator
-	*/
-	void Seed();
-
-	/**
-	 Generates a single random value
-
-	 \returns a single 32-bit random integer
-	*/
-	inline val_t Generate() {
-		unsigned char rbuf[4];
-		bool RANDbytesOK = (RAND_bytes(rbuf, 4) == 1);
-		assert (RANDbytesOK);
-
-		return (uint32_t)(rbuf[3] << 24 | rbuf[2] << 16 | rbuf[1] << 8 | rbuf[0]);
-	}
-
-	/**
-	 Fills a vector with random values
-
-	 \param[out] vec the vector of values to fill
-	 \param[in] start the index to start filling from
-	 \param[in] end the index to fill to (not included)
-
-	 \return the number of values generated
-	*/
-	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
-
-	/**
-	 Fills the given byte array
-
-	 \param[out] ptr a pointer to a char array to fill
-	 \param[in] num the number of bytes to generate
-	*/
-	void GenerateBytes(uint8_t* ptr, size_t num);
+    void fillBytes (void* memptr, size_t size);
 };
 
 } // namespace sharemind

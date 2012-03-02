@@ -17,61 +17,29 @@ extern "C" {
 #include "snow2_fast.h"
 }
 
-
-
 /**
- A randomness engine based on the SNOW 2 stream cipher.
-
- Initial seed is provided by the OpenSSL random engine.
-*/
+ * A randomness engine based on the SNOW 2 stream cipher.
+ *
+ * Initial seed is provided by the OpenSSL random engine.
+ */
 class Snow2RandomEngine : public RandomEngine {
+public: /* Methods: */
 
-public:
-	/**
-	 Constructs the generator
-	 */
-	Snow2RandomEngine (Logger& logger);
+    Snow2RandomEngine (Logger& logger);
 
-	/**
-	 The destructor of the randomness generator
-	*/
-	virtual ~Snow2RandomEngine();
+    virtual ~Snow2RandomEngine();
 
-	/**
-	 Seeds the generator
-	*/
-	void Seed();
+    void Seed();
 
-	/**
-	 Generates a single random value
+    void fillBytes (void* memptr_, size_t size);
 
-	 \returns a single 32-bit random integer
-	*/
-	inline val_t Generate() {
-		if (keystream_ready == 0) {
-			snow_keystream_fast(keystream);
-			keystream_ready = 16;
-		}
-		keystream_ready--;
-		return keystream[keystream_ready];
-	}
-
-	/**
-	 Fills a vector with random values
-
-	 \param[out] vec the vector of values to fill
-	 \param[in] start the index to start filling from
-	 \param[in] end the index to fill to (not included)
-
-	 \return the number of values generated
-	*/
-	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
-
-private:
-	uint8_t snowkey[32];
-	uint8_t keystream_ready;
-	uint32_t keystream[16];
-
+private: /* Fields: */
+    uint8_t snowkey[32];
+    uint8_t keystream_ready;
+    union {
+        uint32_t keystream[16];
+        uint8_t  un_byte_keystream[sizeof (uint32_t) * 16];
+    };
 };
 
 } // namespace sharemind

@@ -48,23 +48,4 @@ Random::~Random() {
         delete (engine);
 }
 
-
-val_t Random::Generate() {
-    return engine->Generate ();
-}
-
-
-size_t Random::FillVector(val_vector_t& vec, size_t start, size_t end) {
-	// Verify range
-	if (start >= vec.size () || end > vec.size () || start > end) {
-		WRITE_LOG_ERROR (m_logger, "[Random] Cannot fill range (" << start << "-" << end << ") with randomness in vector of size " << vec.size () << ".");
-		return 0;
-	}
-
-	//uint32 methodSectionId = ExecutionProfiler::StartSection (ACTION_RANDOMNESS_GENERATION, end - start);
-	size_t rv = engine->FillVector (vec, start, end);
-	//ExecutionProfiler::EndSection (methodSectionId);
-	return rv;
-}
-
 RandomEngine::~RandomEngine() { }

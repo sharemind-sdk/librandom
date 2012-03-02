@@ -10,37 +10,46 @@
 #include "common/Random/Snow2RandomEngine.h"
 #include "common/Random/OpenSSLRandomEngine.h"
 
-using namespace sharemind;
+#include <cstring>
+
+namespace sharemind {
 
 Snow2RandomEngine::Snow2RandomEngine (Logger& logger)
-  : RandomEngine (logger)
-  , keystream_ready (0)
-{
-}
+    : RandomEngine (logger)
+    , keystream_ready (0)
+{ }
 
 Snow2RandomEngine::~Snow2RandomEngine () {}
 
 void Snow2RandomEngine::Seed () {
+    WRITE_LOG_FULLDEBUG (m_logger, "[Snow2Random] Seeding SNOW 2 randomness engine.");
 
-	WRITE_LOG_FULLDEBUG (m_logger, "[Snow2Random] Seeding SNOW 2 randomness engine.");
-	// Generate the key
-	OpenSSLRandomEngine rng(m_logger);
-	rng.GenerateBytes (snowkey, 32);
-
-	// Make IVs random too
-	uint32_t iv0 = rng.Generate ();
-	uint32_t iv1 = rng.Generate ();
-	uint32_t iv2 = rng.Generate ();
-	uint32_t iv3 = rng.Generate ();
-	snow_loadkey_fast (snowkey, 128, iv0, iv1, iv2, iv3);
+    uint32_t iv [4];
+    OpenSSLRandomEngine rng(m_logger);
+    rng.fillBytes (snowkey, sizeof (snowkey));
+    rng.fillBytes (iv, sizeof (iv));
+    snow_loadkey_fast (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
 }
 
+void Snow2RandomEngine::fillBytes (void* memptr_, size_t size) {
+    uint8_t* memptr = static_cast<uint8_t*>(memptr_);
+    size_t currentKeystreamSize = keystream_ready;
+    size_t offsetStart = 0;
+    size_t offsetEnd = currentKeystreamSize;
 
-size_t Snow2RandomEngine::FillVector(val_vector_t& vec, size_t start, size_t end) {
-	size_t count = 0;
-	for (size_t i = start; i < end; i++) {
-		vec[i] = Generate ();
-		count++;
-	}
-	return count;
+    // Fill big chunks
+    while (offsetEnd < size) {
+        memcpy (memptr + offsetStart, &un_byte_keystream[0], currentKeystreamSize);
+        snow_keystream_fast(keystream);
+        keystream_ready = sizeof (keystream);
+        currentKeystreamSize = sizeof (keystream);
+        offsetStart = offsetEnd;
+        offsetEnd += sizeof (keystream);
+    }
+
+    keystream_ready -= (size - offsetStart);
+    memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], size - offsetStart);
+    return;
 }
+
+} // namespace sharemind

@@ -10,61 +10,116 @@
 #ifndef SHAREMINDCOMMON_RANDOM_H
 #define SHAREMINDCOMMON_RANDOM_H
 
+#include <boost/type_traits/is_same.hpp>
+#include <boost/type_traits/is_pointer.hpp>
+
 #include "common/Random/RandomEngine.h"
 #include "common/Logger/Logger.h"
 
 namespace sharemind {
 
-
 /**
- This class is a front end to randomness generation.
+ * This class is a front end to randomness generation.
  */
 class Random {
+public: /* Methods: */
 
-public:
+    Random(Logger& logger);
 
-	/**
-	 The constructor
-	 */
-	Random(Logger& logger);
+    Random(Logger& logger, RandomEngineType engine);
 
-	/**
-	 The constructor
-	 */
-	Random(Logger& logger, RandomEngineType engine);
+    virtual ~Random();
 
-	/**
-	 The destructor of the randomness generator
-	*/
-	virtual ~Random();
+    template <typename T>
+    void fillValue (T& value) {
+        engine->fillBytes (&value, sizeof (T));
+    }
 
-	/**
-	 Generates a single random value
+    template <typename T>
+    T generateValue () {
+        T result;
+        fillValue (result);
+        return result;
+    }
 
-	 \returns a single 32-bit random integer
-	*/
-	val_t Generate();
+    /**
+     * \brief Fills a subrange of vector with random values.
+     */
+    template <typename T>
+    void fillVector (std::vector<T>& vec, size_t begin, size_t end) {
+        if (begin < end && end <= vec.size ()) {
+            fillRange (vec.begin () + begin, vec.begin () + end);
+        }
+    }
 
-	/**
-	 Fills a vector with random values
+    /**
+     * \brief Fills entire vector with random values.
+     */
+    template <typename T>
+    void fillVector (std::vector<T>& vec) {
+        fillRange (vec.begin (), vec.end ());
+    }
 
-	 \param[out] vec the vector of values to fill
-	 \param[in] start the index to start filling from
-	 \param[in] end the index to fill to (not included)
-
-	 \return the number of values generated
-	*/
-	size_t FillVector(val_vector_t& vec, size_t start, size_t end);
+    /**
+     * \brief Fills the range [begin, end) with random values.
+     * \param[in] begin an iterator
+     * \param[in] end an iterator
+     *
+     * This supplies efficient implementation for raw pointer ranges, and std::vector iterators.
+     * For regular forward iterators this may be slow due to virtual call overhead.
+     */
+    template <typename Iter>
+    void fillRange (Iter begin, Iter end) {
+        typedef typename std::iterator_traits<Iter>::value_type value_type;
+        fillRangeImpl_ (begin, end,
+            typename std::iterator_traits<Iter>::iterator_category (),
+            boost::is_pointer<Iter>(),
+            boost::is_same<Iter, typename std::vector<value_type>::iterator>());
+    }
 
 private:
 
-	/**
-	 The actual engine used to generate randomness
-	 */
-	RandomEngine* engine;
+    template <typename Iter>
+    void fillRangeImpl_ (Iter begin, Iter end,
+                         std::forward_iterator_tag,
+                         const boost::false_type& /* is pointer */,
+                         const boost::false_type& /* is vector iterator */)
+    {
+        for (Iter i = begin; i != end; ++ i) {
+            fillValue (*i);
+        }
+    }
 
-	Logger& m_logger;
+    template <typename Iter>
+    void fillRangeImpl_ (Iter begin, Iter end,
+                         std::random_access_iterator_tag,
+                         const boost::false_type& /* is pointer */,
+                         const boost::true_type& /* is vector iterator */)
+    {
+        typedef typename std::iterator_traits<Iter>::difference_type diff_type;
+        typedef typename std::iterator_traits<Iter>::value_type value_type;
+        const diff_type num = end - begin;
+        if (num > 0) {
+            engine->fillBytes (&*begin, sizeof (value_type) * num);
+        }
+    }
 
+    template <typename T>
+    void fillRangeImpl_ (T* begin, T* end,
+                         std::random_access_iterator_tag,
+                         const boost::true_type& /* is pointer */,
+                         const boost::false_type& /* is vector iterator */)
+    {
+        const ptrdiff_t num = end - begin;
+        if (num > 0) {
+            engine->fillBytes (begin, sizeof (T) * num);
+        }
+    }
+
+private: /* Fields: */
+
+    RandomEngine*  engine; ///< The actual engine used to generate randomness
+    Logger&        m_logger;
 };
 
 } // namespace sharemind
