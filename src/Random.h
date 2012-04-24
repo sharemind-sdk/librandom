@@ -24,15 +24,13 @@ namespace sharemind {
 class Random {
 public: /* Methods: */
 
-    Random(Logger& logger);
-
-    Random(Logger& logger, RandomEngineType engine);
+    Random(Logger& logger, RandomEngineType m_engine = RNG_SNOW2);
 
     virtual ~Random();
 
     template <typename T>
     void fillValue (T& value) {
-        engine->fillBytes (&value, sizeof (T));
+        m_engine->fillBytes (&value, sizeof (T));
     }
 
     template <typename T>
@@ -100,7 +98,7 @@ private:
         typedef typename std::iterator_traits<Iter>::value_type value_type;
         const diff_type num = end - begin;
         if (num > 0) {
-            engine->fillBytes (&*begin, sizeof (value_type) * num);
+            m_engine->fillBytes (&*begin, sizeof (value_type) * num);
         }
     }
 
@@ -112,14 +110,13 @@ private:
     {
         const ptrdiff_t num = end - begin;
         if (num > 0) {
-            engine->fillBytes (begin, sizeof (T) * num);
+            m_engine->fillBytes (begin, sizeof (T) * num);
         }
     }
 
 private: /* Fields: */
 
-    RandomEngine*  engine; ///< The actual engine used to generate randomness
-    Logger&        m_logger;
+    RandomEngine*  const  m_engine; ///< The actual engine used to generate randomness
 };
 
 } // namespace sharemind
