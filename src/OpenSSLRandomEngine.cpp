@@ -23,8 +23,8 @@ OpenSSLRandomEngine::OpenSSLRandomEngine(Logger& logger)
 OpenSSLRandomEngine::~OpenSSLRandomEngine() { }
 
 void OpenSSLRandomEngine::Seed () {
-	// Possibly incorporate more entropy
-	WRITE_LOG_FULLDEBUG (m_logger, "Seeding OpenSSL randomness engine.");
+    // Possibly incorporate more entropy
+    WRITE_LOG_FULLDEBUG (m_logger, "Seeding OpenSSL randomness engine.");
 }
 
 void OpenSSLRandomEngine::fillBytes (void* memptr, size_t size) {

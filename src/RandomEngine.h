@@ -19,10 +19,10 @@ namespace sharemind {
  * The randomness engine types available in the code.
  */
 enum RandomEngineType {
-	/*! An engine based on the SNOW2 stream cipher */
-	RNG_SNOW2,
-	/*! An engine based on the OpenSSL RAND_bytes function */
-	RNG_OPENSSL
+    /*! An engine based on the SNOW2 stream cipher */
+    RNG_SNOW2,
+    /*! An engine based on the OpenSSL RAND_bytes function */
+    RNG_OPENSSL
 };
 
 /**

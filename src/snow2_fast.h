@@ -47,9 +47,9 @@
  *         ...
  */
 extern void snow_loadkey_fast(uint8_t *key,
-				   uint32_t keysize,
-				   uint32_t IV3, uint32_t IV2,
-				   uint32_t IV1, uint32_t IV0);
+                   uint32_t keysize,
+                   uint32_t IV3, uint32_t IV2,
+                   uint32_t IV1, uint32_t IV0);
 
 /*
  * Function: snow_keystream_fast
