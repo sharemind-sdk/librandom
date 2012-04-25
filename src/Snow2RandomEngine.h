@@ -23,6 +23,7 @@ namespace sharemind {
  * Initial seed is provided by the OpenSSL random engine.
  */
 class Snow2RandomEngine : public RandomEngine {
+
 public: /* Methods: */
 
     Snow2RandomEngine (Logger& logger);
@@ -34,14 +35,16 @@ public: /* Methods: */
     void fillBytes (void* memptr_, size_t size);
 
 private: /* Fields: */
+
     uint8_t snowkey[32];
     uint8_t keystream_ready;
     union {
         uint32_t keystream[16];
         uint8_t  un_byte_keystream[sizeof (uint32_t) * 16];
     };
-};
 
-} // namespace sharemind
+}; /* class Snow2RandomEngine { */
 
-#endif // SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
+} /* namespace sharemind { */
+
+#endif /* SHAREMINDCOMMON_SNOW2RANDOMENGINE_H */

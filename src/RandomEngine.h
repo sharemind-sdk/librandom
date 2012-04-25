@@ -29,6 +29,7 @@ enum RandomEngineType {
  * This class is an abstract randomness generator
  */
 class RandomEngine {
+
 public: /* Methods: */
 
     RandomEngine (Logger& logger)
@@ -47,9 +48,11 @@ public: /* Methods: */
     virtual void fillBytes (void* memptr, size_t size) = 0;
 
 protected: /* Fields: */
+
     Logger& m_logger;
-};
 
-} // namespace sharemind
+}; /* class RandomEngine { */
 
-#endif // SHAREMINDCOMMON_RANDOMENGINE_H
+} /* namespace sharemind { */
+
+#endif /* SHAREMINDCOMMON_RANDOMENGINE_H */

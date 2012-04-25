@@ -22,6 +22,7 @@ namespace sharemind {
  * This class is a front end to randomness generation.
  */
 class Random {
+
 public: /* Methods: */
 
     Random(Logger& logger, RandomEngineType m_engine = RNG_SNOW2);
@@ -116,9 +117,11 @@ private:
 
 private: /* Fields: */
 
-    RandomEngine*  const  m_engine; ///< The actual engine used to generate randomness
-};
+    /** The actual engine used to generate randomness. */
+    RandomEngine *  const  m_engine;
 
-} // namespace sharemind
+}; /* class Random { */
 
-#endif // SHAREMINDCOMMON_RANDOM_H
+} /* namespace sharemind { */
+
+#endif /* SHAREMINDCOMMON_RANDOM_H */

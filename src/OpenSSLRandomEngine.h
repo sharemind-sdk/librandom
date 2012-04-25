@@ -15,11 +15,11 @@
 
 namespace sharemind {
 
-/// A randomness engine based on OpenSSL RAND_bytes()
+/** A randomness engine based on OpenSSL RAND_bytes(). */
 class OpenSSLRandomEngine : public RandomEngine {
 public: /* Methods: */
 
-     /// Constructs the generator and seeds it
+    /** Constructs the generator and seeds it. */
     OpenSSLRandomEngine(Logger& logger);
 
     virtual ~OpenSSLRandomEngine();
@@ -29,6 +29,6 @@ public: /* Methods: */
     void fillBytes (void* memptr, size_t size);
 };
 
-} // namespace sharemind
+} /* namespace sharemind { */
 
-#endif // SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
+#endif /* SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H */
