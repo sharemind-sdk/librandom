@@ -68,32 +68,44 @@ public: /* Methods: */
      * For regular forward iterators this may be slow due to virtual call overhead.
      */
     template <typename Iter>
-    void fillRange (Iter begin, Iter end) {
-        typedef typename std::iterator_traits<Iter>::value_type value_type;
-        fillRangeImpl_ (begin, end,
-            typename std::iterator_traits<Iter>::iterator_category (),
-            boost::is_pointer<Iter>(),
-            boost::is_same<Iter, typename std::vector<value_type>::iterator>());
+    void fillRange (const Iter begin, const Iter end) {
+        fillRangeImpl_ (begin, end, boost::is_pointer<Iter>());
     }
 
 private:
 
-    template <typename Iter>
-    void fillRangeImpl_ (Iter begin, Iter end,
-                         std::forward_iterator_tag,
-                         const boost::false_type& /* is pointer */,
-                         const boost::false_type& /* is vector iterator */)
-    {
-        for (Iter i = begin; i != end; ++ i) {
-            fillValue (*i);
-        }
+    template <typename T>
+    inline void fillRangeImpl_ (T* const begin, T* const end,
+                                const boost::true_type& /* is_pointer */) {
+        return fillRangePointer_ (begin, end);
     }
 
     template <typename Iter>
-    void fillRangeImpl_ (Iter begin, Iter end,
-                         std::random_access_iterator_tag,
-                         const boost::false_type& /* is pointer */,
-                         const boost::true_type& /* is vector iterator */)
+    inline void fillRangeImpl_ (const Iter begin, const Iter end,
+                                const boost::false_type& /* is_pointer */) {
+        typedef typename std::iterator_traits<Iter>::value_type value_type;
+        return fillRangeIterator_ (begin, end,
+                                   typename std::iterator_traits<Iter>::iterator_category (),
+                                   boost::is_same<Iter, typename std::vector<value_type>::iterator>());
+    }
+
+    /* Specialization for non-vector non-pointer iterator: */
+    template <typename Iter>
+    inline void fillRangeIterator_ (const Iter begin, const Iter end,
+                                    const std::forward_iterator_tag,
+                                    const boost::false_type& /* is_vector_iterator */)
+    {
+        typedef typename std::iterator_traits<Iter>::value_type value_type;
+        for (Iter i = begin; i != end; ++ i) {
+            *i = generateValue<value_type> ();
+        }
+    }
+
+    /* Specialization for vector iterator: */
+    template <typename Iter>
+    inline void fillRangeIterator_ (const Iter begin, const Iter end,
+                                    const std::random_access_iterator_tag,
+                                    const boost::true_type& /* is_vector_iterator */)
     {
         typedef typename std::iterator_traits<Iter>::difference_type diff_type;
         typedef typename std::iterator_traits<Iter>::value_type value_type;
@@ -103,12 +115,9 @@ private:
         }
     }
 
+    /* Specialization for non-void pointer iterator: */
     template <typename T>
-    void fillRangeImpl_ (T* begin, T* end,
-                         std::random_access_iterator_tag,
-                         const boost::true_type& /* is pointer */,
-                         const boost::false_type& /* is vector iterator */)
-    {
+    inline void fillRangePointer_ (T* const begin, T* const end) {
         const ptrdiff_t num = end - begin;
         if (num > 0) {
             m_engine->fillBytes (begin, sizeof (T) * num);
@@ -121,6 +130,16 @@ private: /* Fields: */
     RandomEngine *  const  m_engine;
 
 }; /* class Random { */
+
+/* Specialization for void pointer iterator: */
+template <>
+inline void Random::fillRangePointer_<void> (void* const begin, void* const end) {
+    const ptrdiff_t num = static_cast<char*>(end) - static_cast<char*>(begin);
+    if (num > 0) {
+        m_engine->fillBytes (begin, num);
+    }
+}
+
 
 } /* namespace sharemind { */
 
