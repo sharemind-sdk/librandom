@@ -10,10 +10,9 @@
 #ifndef SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
 #define SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
 
-#include "RandomEngine.h"
+#include "Random.h"
 
 #include <stdint.h>
-
 
 namespace sharemind {
 
@@ -22,17 +21,16 @@ namespace sharemind {
  *
  * Initial seed is provided by the OpenSSL random engine.
  */
-class Snow2RandomEngine : public RandomEngine {
-
+class Snow2RandomEngine : public Random {
 public: /* Methods: */
 
-    Snow2RandomEngine (Logger& logger);
+    Snow2RandomEngine ()
+        : keystream_ready (0)
+    { }
 
-    virtual ~Snow2RandomEngine();
+    virtual void Seed ();
 
-    void Seed();
-
-    void fillBytes (void* memptr_, size_t size);
+    virtual void fillBytes (void* memptr_, size_t size);
 
 private: /* Fields: */
 

@@ -10,23 +10,18 @@
 #ifndef SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
 #define SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
 
-#include "RandomEngine.h"
-
+#include "Random.h"
 
 namespace sharemind {
 
 /** A randomness engine based on OpenSSL RAND_bytes(). */
-class OpenSSLRandomEngine : public RandomEngine {
+class OpenSSLRandomEngine : public Random {
 public: /* Methods: */
 
     /** Constructs the generator and seeds it. */
-    OpenSSLRandomEngine(Logger& logger);
+    virtual void Seed();
 
-    virtual ~OpenSSLRandomEngine();
-
-    void Seed();
-
-    void fillBytes (void* memptr, size_t size);
+    virtual void fillBytes (void* memptr, size_t size);
 };
 
 } /* namespace sharemind { */

@@ -18,18 +18,9 @@ extern "C" {
 
 namespace sharemind {
 
-Snow2RandomEngine::Snow2RandomEngine (Logger& logger)
-    : RandomEngine (logger)
-    , keystream_ready (0)
-{ }
-
-Snow2RandomEngine::~Snow2RandomEngine () {}
-
 void Snow2RandomEngine::Seed () {
-    WRITE_LOG_FULLDEBUG (m_logger, "[Snow2Random] Seeding SNOW 2 randomness engine.");
-
     uint32_t iv [4];
-    OpenSSLRandomEngine rng(m_logger);
+    OpenSSLRandomEngine rng;
     rng.fillBytes (snowkey, sizeof (snowkey));
     rng.fillBytes (iv, sizeof (iv));
     snow_loadkey_fast (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);

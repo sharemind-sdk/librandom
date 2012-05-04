@@ -9,26 +9,18 @@
 
 #include "OpenSSLRandomEngine.h"
 
+#include <assert.h>
 #include <openssl/rand.h>
-#include "../Logger/Logger.h"
 
 
 namespace sharemind {
 
-OpenSSLRandomEngine::OpenSSLRandomEngine(Logger& logger)
-  : RandomEngine (logger)
-{ }
-
-
-OpenSSLRandomEngine::~OpenSSLRandomEngine() { }
-
 void OpenSSLRandomEngine::Seed () {
     // Possibly incorporate more entropy
-    WRITE_LOG_FULLDEBUG (m_logger, "Seeding OpenSSL randomness engine.");
 }
 
 void OpenSSLRandomEngine::fillBytes (void* memptr, size_t size) {
-    bool RANDbytesOK = (RAND_bytes(static_cast<unsigned char*>(memptr), size) == 1);
+    const bool RANDbytesOK = (RAND_bytes (static_cast<unsigned char*>(memptr), size) == 1);
     assert (RANDbytesOK);
 }
 
