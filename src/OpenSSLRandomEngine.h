@@ -15,7 +15,7 @@
 namespace sharemind {
 
 /** A randomness engine based on OpenSSL RAND_bytes(). */
-class OpenSSLRandomEngine : public Random {
+class OpenSSLRandomEngine : public IRandom {
 public: /* Methods: */
 
     /** Constructs the generator and seeds it. */

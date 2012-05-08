@@ -19,12 +19,12 @@ namespace sharemind {
 /**
  * This class is a header-only front-end for randomness engines.
  */
-class Random {
+class IRandom {
 public: /* Methods: */
 
-    Random () { }
+    IRandom () { }
 
-    virtual ~Random () { }
+    virtual ~IRandom () { }
 
     virtual void Seed () = 0;
 
@@ -134,7 +134,7 @@ private:
 
 /* Specialization for void pointer iterator: */
 template <>
-inline void Random::fillRangePointer_<void> (void* const begin, void* const end) {
+inline void IRandom::fillRangePointer_<void> (void* const begin, void* const end) {
     const ptrdiff_t num = static_cast<char*>(end) - static_cast<char*>(begin);
     if (num > 0) {
         fillBytes (begin, num);

@@ -21,7 +21,7 @@ namespace sharemind {
  *
  * Initial seed is provided by the OpenSSL random engine.
  */
-class Snow2RandomEngine : public Random {
+class Snow2RandomEngine : public IRandom {
 public: /* Methods: */
 
     Snow2RandomEngine ()
