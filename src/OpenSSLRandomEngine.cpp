@@ -9,7 +9,7 @@
 
 #include "OpenSSLRandomEngine.h"
 
-#include <assert.h>
+#include <cassert>
 #include <openssl/rand.h>
 
 
