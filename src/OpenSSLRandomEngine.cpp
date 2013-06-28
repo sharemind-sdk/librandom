@@ -19,6 +19,10 @@ void OpenSSLRandomEngine::Seed () {
     // Possibly incorporate more entropy
 }
 
+void OpenSSLRandomEngine::Seed (const void* memptr, size_t size) {
+     RAND_seed (memptr, size);
+}
+
 void OpenSSLRandomEngine::fillBytes (void* memptr, size_t size) {
     const bool RANDbytesOK = (RAND_bytes (static_cast<unsigned char*>(memptr), size) == 1);
     assert (RANDbytesOK);

@@ -30,6 +30,8 @@ public: /* Methods: */
 
     virtual void Seed ();
 
+    virtual void Seed (const void* memptr_, size_t size);
+
     virtual void fillBytes (void* memptr_, size_t size);
 
 private: /* Fields: */

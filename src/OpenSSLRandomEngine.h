@@ -21,6 +21,8 @@ public: /* Methods: */
     /** Constructs the generator and seeds it. */
     virtual void Seed();
 
+    virtual void Seed (const void* memptr, size_t size);
+
     virtual void fillBytes (void* memptr, size_t size);
 };
 

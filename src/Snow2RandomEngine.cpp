@@ -26,6 +26,22 @@ void Snow2RandomEngine::Seed () {
     snow_loadkey_fast (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
 }
 
+void Snow2RandomEngine::Seed (const void* memptr_, size_t size) {
+    uint32_t iv [4];
+
+    assert (size == sizeof (snowkey) + sizeof (iv));
+    if (size != sizeof (snowkey) + sizeof (iv)) {
+        // Fallback in case of misuse in non-debug situation.
+        Seed ();
+    }
+    else {
+        const uint8_t* memptr = static_cast<const uint8_t*>(memptr_);
+        memcpy (snowkey, memptr, sizeof (snowkey));
+        memcpy (iv, memptr + sizeof (snowkey), sizeof (iv));
+        snow_loadkey_fast (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
+    }
+}
+
 void Snow2RandomEngine::fillBytes (void* memptr_, size_t size) {
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
     size_t currentKeystreamSize = keystream_ready;
