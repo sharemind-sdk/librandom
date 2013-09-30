@@ -30,6 +30,8 @@
 #endif
 
 
+uint32_t s15,s14,s13,s12,s11,s10,s9,s8,s7,s6,s5,s4,s3,s2,s1,s0;
+uint32_t outfrom_fsm,fsmtmp,r1,r2;
 /*
  * Function:  snow_loadkey_fast
  *
@@ -64,7 +66,6 @@
 void snow_loadkey_fast(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,uint32_t IV1,uint32_t IV0)
 {
  int i;
- uint32_t s15,s14,s13,s12,s11,s10,s9,s8,s7,s6,s5,s4,s3,s2,s1,s0;
 
   if (keysize==128) {
     s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
@@ -122,10 +123,12 @@ void snow_loadkey_fast(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,u
     s9^=IV3;
 
 
+  r1=0;
+  r2=0;
+
   /* Do 32 initial clockings */
  for(i=0;i<2;i++)
     {
-      uint32_t outfrom_fsm,fsmtmp,r1 = 0,r2 = 0;
 
       outfrom_fsm=(r1+ s15 )^r2;
       s0 =a_mul(s0 )^ s2 ^ainv_mul(s11 )^outfrom_fsm;
@@ -238,8 +241,6 @@ void snow_loadkey_fast(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,u
 
 INLINE void snow_keystream_fast(uint32_t *keystream_block)
 {
-      uint32_t s15,s14,s13,s12,s11,s10,s9,s8,s7,s6,s5,s4,s3,s2,s1,s0;
-      uint32_t fsmtmp,r1,r2;
 
       s0 =a_mul(s0 )^ s2 ^ainv_mul(s11 );
       fsmtmp=r2+ s5 ;
