@@ -25,7 +25,7 @@ class Snow2RandomEngine : public IRandom {
 public: /* Methods: */
 
     Snow2RandomEngine ()
-        : keystream_ready (0)
+        : keystream_ready(sizeof(keystream))
     { }
 
     virtual void Seed ();
