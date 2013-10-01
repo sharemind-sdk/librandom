@@ -36,7 +36,6 @@ public: /* Methods: */
 
 private: /* Fields: */
 
-    uint8_t snowkey[32];
     uint8_t keystream_ready;
     union {
         uint32_t keystream[16];

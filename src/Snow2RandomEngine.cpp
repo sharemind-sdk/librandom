@@ -19,6 +19,7 @@ extern "C" {
 namespace sharemind {
 
 void Snow2RandomEngine::Seed () {
+    uint8_t snowkey[32];
     uint32_t iv [4];
     OpenSSLRandomEngine rng;
     rng.fillBytes (snowkey, sizeof (snowkey));
@@ -27,8 +28,8 @@ void Snow2RandomEngine::Seed () {
 }
 
 void Snow2RandomEngine::Seed (const void* memptr_, size_t size) {
+    uint8_t snowkey[32];
     uint32_t iv [4];
-
     assert (size == sizeof (snowkey) + sizeof (iv));
     if (size != sizeof (snowkey) + sizeof (iv)) {
         // Fallback in case of misuse in non-debug situation.
@@ -44,22 +45,24 @@ void Snow2RandomEngine::Seed (const void* memptr_, size_t size) {
 
 void Snow2RandomEngine::fillBytes (void* memptr_, size_t size) {
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
-    size_t currentKeystreamSize = keystream_ready;
+    size_t currentKeystreamSize = sizeof (keystream) - keystream_ready;
     size_t offsetStart = 0;
     size_t offsetEnd = currentKeystreamSize;
 
     // Fill big chunks
-    while (offsetEnd < size) {
-        memcpy (memptr + offsetStart, &un_byte_keystream[0], currentKeystreamSize);
+    while (offsetEnd <= size) {
+        memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], currentKeystreamSize);
         snow_keystream_fast(keystream);
-        keystream_ready = sizeof (keystream);
+        keystream_ready = 0;
         currentKeystreamSize = sizeof (keystream);
         offsetStart = offsetEnd;
         offsetEnd += sizeof (keystream);
     }
 
-    keystream_ready -= (size - offsetStart);
-    memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], size - offsetStart);
+    const size_t remainingSize = size - offsetStart;
+    memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], remainingSize);
+    keystream_ready += remainingSize;
+    assert (keystream_ready <= sizeof(keystream)); // the supply may deplete
     return;
 }
 
