@@ -7,19 +7,19 @@
  * code is subject to the appropriate license agreement.
  */
 
-#ifndef SHAREMINDCOMMON_RANDOM_H
-#define SHAREMINDCOMMON_RANDOM_H
+#ifndef SHAREMINDCOMMON_IRANDOM_H
+#define SHAREMINDCOMMON_IRANDOM_H
 
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 
+
 namespace sharemind {
 
-/**
- * This class is a header-only front-end for randomness engines.
- */
+/** This class is a header-only front-end for randomness engines. */
 class IRandom {
+
 public: /* Methods: */
 
     IRandom() { }
@@ -40,14 +40,12 @@ public: /* Methods: */
     template <typename T>
     inline void fillBlock(T * begin, T * end) {
         assert(begin <= end);
-        if (begin < end) {
+        if (begin < end)
             fillBytes(begin, sizeof(T)*std::distance(begin, end));
-        }
     }
 
-}; /* class Random { */
-
+}; /* class IRandom { */
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_RANDOM_H */
+#endif /* SHAREMINDCOMMON_IRANDOM_H */

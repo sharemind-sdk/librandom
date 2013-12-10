@@ -10,17 +10,22 @@
 #ifndef SHAREMINDCOMMON_NULLRANDOMENGINE_H
 #define SHAREMINDCOMMON_NULLRANDOMENGINE_H
 
-#include "Random.h"
+#include "IRandom.h"
+
 
 namespace sharemind {
 
 /** A randomness engine that only generates zeroes. Useful for debugging. */
-class NullRandomEngine : public IRandom {
+class NullRandomEngine: public IRandom {
+
 public: /* Methods: */
 
     virtual void Seed();
 
-    virtual void fillBytes (void* memptr, size_t size);
+    virtual void Seed(const void * memptr, size_t size);
+
+    virtual void fillBytes(void * memptr, size_t size);
+
 };
 
 } /* namespace sharemind { */

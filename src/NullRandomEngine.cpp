@@ -11,12 +11,15 @@
 
 #include <cstring>
 
+
 namespace sharemind {
 
-void NullRandomEngine::Seed () { }
+void NullRandomEngine::Seed() {}
 
-void NullRandomEngine::fillBytes (void* memptr, size_t size) {
-    memset (memptr, 0, size);
+void NullRandomEngine::Seed(const void *, size_t) {}
+
+void NullRandomEngine::fillBytes(void * memptr, size_t size) {
+    memset(memptr, 0, size);
 }
 
 } // namespace sharemind
