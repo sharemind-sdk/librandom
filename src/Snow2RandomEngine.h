@@ -12,11 +12,7 @@
 
 #include "IRandom.h"
 
-#if __cplusplus >= 201103L
 #include <cstdint>
-#else
-#include <stdint.h>
-#endif
 
 
 namespace sharemind {
