@@ -29,11 +29,11 @@ public: /* Methods: */
     Snow2RandomEngine()
         : keystream_ready(sizeof(keystream)) {}
 
-    virtual void Seed();
+    void Seed() final override;
 
-    virtual void Seed(const void * memptr_, size_t size);
+    void Seed(const void * memptr_, size_t size) final override;
 
-    virtual void fillBytes(void * memptr_, size_t size);
+    void fillBytes(void * memptr_, size_t size) final override;
 
 private: /* Methods: */
 
