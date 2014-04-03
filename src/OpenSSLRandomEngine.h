@@ -20,11 +20,11 @@ class OpenSSLRandomEngine: public IRandom {
 
 public: /* Methods: */
 
-    void Seed() final override;
+    inline void Seed() noexcept final override {}
 
-    void Seed(const void* memptr, size_t size) final override;
+    void Seed(const void * memptr, size_t size) noexcept final override;
 
-    void fillBytes(void* memptr, size_t size) final override;
+    void fillBytes(void * memptr, size_t size) noexcept final override;
 
 };
 

@@ -20,11 +20,12 @@ class NullRandomEngine: public IRandom {
 
 public: /* Methods: */
 
-    void Seed() final override;
+    inline void Seed() noexcept final override {}
 
-    void Seed(const void * memptr, size_t size) final override;
+    inline void Seed(const void * memptr, size_t size) noexcept final override
+    { (void) memptr; (void) size; }
 
-    void fillBytes(void * memptr, size_t size) final override;
+    void fillBytes(void * memptr, size_t size) noexcept final override;
 
 };
 

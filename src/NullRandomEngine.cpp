@@ -14,11 +14,7 @@
 
 namespace sharemind {
 
-void NullRandomEngine::Seed() {}
-
-void NullRandomEngine::Seed(const void *, size_t) {}
-
-void NullRandomEngine::fillBytes(void * memptr, size_t size) {
+void NullRandomEngine::fillBytes(void * memptr, size_t size) noexcept {
     memset(memptr, 0, size);
 }
 

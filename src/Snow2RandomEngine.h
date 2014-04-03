@@ -26,14 +26,14 @@ class Snow2RandomEngine: public IRandom {
 
 public: /* Methods: */
 
-    Snow2RandomEngine()
+    Snow2RandomEngine() noexcept
         : keystream_ready(sizeof(keystream)) {}
 
-    void Seed() final override;
+    void Seed() noexcept final override;
 
-    void Seed(const void * memptr_, size_t size) final override;
+    void Seed(const void * memptr_, size_t size) noexcept final override;
 
-    void fillBytes(void * memptr_, size_t size) final override;
+    void fillBytes(void * memptr_, size_t size) noexcept final override;
 
 private: /* Methods: */
 

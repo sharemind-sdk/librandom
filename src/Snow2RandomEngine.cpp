@@ -342,7 +342,7 @@ void Snow2RandomEngine::snow_keystream_fast_p()
     keystream[15]=(r1+ s15 )^r2^ s0 ;
 }
 
-void Snow2RandomEngine::Seed () {
+void Snow2RandomEngine::Seed() noexcept {
     uint8_t snowkey[32];
     uint32_t iv [4];
     OpenSSLRandomEngine rng;
@@ -351,7 +351,7 @@ void Snow2RandomEngine::Seed () {
     snow_loadkey_fast_p (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
 }
 
-void Snow2RandomEngine::Seed (const void* memptr_, size_t size) {
+void Snow2RandomEngine::Seed(const void * memptr_, size_t size) noexcept {
     uint8_t snowkey[32];
     uint32_t iv [4];
     assert (size == sizeof (snowkey) + sizeof (iv));
@@ -367,7 +367,7 @@ void Snow2RandomEngine::Seed (const void* memptr_, size_t size) {
     }
 }
 
-void Snow2RandomEngine::fillBytes (void* memptr_, size_t size) {
+void Snow2RandomEngine::fillBytes(void * memptr_, size_t size) noexcept {
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
     size_t currentKeystreamSize = sizeof (keystream) - keystream_ready;
     size_t offsetStart = 0;
