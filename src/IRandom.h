@@ -20,6 +20,10 @@ namespace sharemind {
 /** This class is a header-only front-end for randomness engines. */
 class IRandom {
 
+public: /* Types: */
+
+    typedef void WantDataType;
+
 public: /* Methods: */
 
     virtual ~IRandom() noexcept {}
@@ -40,6 +44,11 @@ public: /* Methods: */
         assert(begin <= end);
         if (begin < end)
             fillBytes(begin, sizeof(T)*std::distance(begin, end));
+    }
+
+    inline size_t operator()(void * memptr, size_t size) noexcept {
+        fillBytes(memptr, size);
+        return size;
     }
 
 }; /* class IRandom { */
