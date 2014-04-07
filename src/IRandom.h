@@ -40,7 +40,7 @@ public: /* Methods: */
     virtual void fillBytes(void * memptr, size_t size) noexcept = 0;
 
     template <typename T>
-    inline void fillBlock(T * begin, T * end) {
+    inline void fillBlock(T * begin, T * end) noexcept {
         assert(begin <= end);
         if (begin < end)
             fillBytes(begin, sizeof(T)*std::distance(begin, end));
