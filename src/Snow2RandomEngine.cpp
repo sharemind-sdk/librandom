@@ -62,8 +62,6 @@ namespace sharemind {
  */
 void Snow2RandomEngine::snow_loadkey_fast_p(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,uint32_t IV1,uint32_t IV0)
 {
-    int i;
-
     if (keysize==128) {
         s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
                 (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
@@ -87,6 +85,7 @@ void Snow2RandomEngine::snow_loadkey_fast_p(uint8_t *key,uint32_t keysize,uint32
         s0  =~s12;
     }
     else {  /* assume keysize=256 */
+        assert(keysize == 256u);
         s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
                 (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
         s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
@@ -124,7 +123,7 @@ void Snow2RandomEngine::snow_loadkey_fast_p(uint8_t *key,uint32_t keysize,uint32
     r2=0;
 
     /* Do 32 initial clockings */
-    for(i=0;i<2;i++)
+    for(int i=0;i<2;i++)
     {
 
         uint32_t outfrom_fsm=(r1+ s15 )^r2;
@@ -345,9 +344,11 @@ void Snow2RandomEngine::snow_keystream_fast_p()
 void Snow2RandomEngine::Seed() noexcept {
     uint8_t snowkey[32];
     uint32_t iv [4];
-    OpenSSLRandomEngine rng;
-    rng.fillBytes (snowkey, sizeof (snowkey));
-    rng.fillBytes (iv, sizeof (iv));
+    {
+        OpenSSLRandomEngine rng;
+        rng.fillBytes(snowkey, sizeof(snowkey));
+        rng.fillBytes(iv, sizeof(iv));
+    }
     snow_loadkey_fast_p (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
 }
 
