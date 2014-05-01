@@ -14,7 +14,7 @@
 
 #include <fluffy/CircBufferSCSP.h>
 #include <fluffy/PotentiallyVoidTypeInfo.h>
-#include <sharemind/common/Stoppable.h>
+#include <fluffy/Stoppable.h>
 #include <thread>
 
 
@@ -65,10 +65,11 @@ private: /* Methods: */
 
     void fillerThread() noexcept {
         struct GracefulStop {};
+        typedef Fluffy::Stoppable::TestActor<GracefulStop> STA;
         try {
             for (;;) {
                 m_buffer.write(m_engine);
-                m_buffer.waitSpaceAvailable(Stoppable<>::Test<GracefulStop>(m_stoppable));
+                m_buffer.waitSpaceAvailable(STA(m_stoppable));
             }
         } catch (const GracefulStop &) {}
     }
@@ -77,7 +78,7 @@ private: /* Fields: */
 
     IRandom & m_engine;
     Fluffy::CircBufferSCSP<void> m_buffer;
-    Stoppable<> m_stoppable;
+    Fluffy::Stoppable m_stoppable;
     std::thread m_thread;
 
 }; /* class IRandom { */
