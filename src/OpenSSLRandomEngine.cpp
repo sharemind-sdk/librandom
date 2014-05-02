@@ -26,7 +26,10 @@ void OpenSSLRandomEngine::fillBytes (void * memptr, size_t size) noexcept {
     #ifdef SHAREMIND_INSTRUCT_VALGRIND
     VALGRIND_MAKE_MEM_DEFINED(memptr, size);
     #endif
-    const bool RANDbytesOK = (RAND_bytes (static_cast<unsigned char*>(memptr), size) == 1);
+    #ifndef NDEBUG
+    const bool RANDbytesOK =
+    #endif
+            (RAND_bytes(static_cast<unsigned char*>(memptr), size) == 1);
     assert (RANDbytesOK);
 }
 
