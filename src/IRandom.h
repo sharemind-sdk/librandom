@@ -20,10 +20,6 @@ namespace sharemind {
 /** This class is a header-only front-end for randomness engines. */
 class IRandom {
 
-public: /* Types: */
-
-    typedef void WantDataType;
-
 public: /* Methods: */
 
     virtual ~IRandom() noexcept {}
