@@ -13,12 +13,17 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <fluffy/Exception.h>
 
 
 namespace sharemind {
 
 /** This class is a header-only front-end for randomness engines. */
 class IRandom {
+
+public: /* Types: */
+
+    FLUFFY_DEFINE_EXCEPTION_UNUSED_SUBCLASS(Fluffy::Exception, Exception);
 
 public: /* Methods: */
 
