@@ -23,7 +23,7 @@ class IRandom {
 
 public: /* Types: */
 
-    FLUFFY_DEFINE_EXCEPTION_UNUSED_SUBCLASS(Fluffy::Exception, Exception);
+    FLUFFY_DEFINE_EXCEPTION_UNUSED(Fluffy::Exception, Exception);
 
 public: /* Methods: */
 
