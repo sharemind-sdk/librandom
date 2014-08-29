@@ -14,6 +14,8 @@
 #include <cassert>
 #include <cstddef>
 #include <fluffy/Exception.h>
+#include <LogHard/Logger.h>
+#include <string>
 
 
 namespace sharemind {
@@ -24,6 +26,17 @@ class IRandom {
 public: /* Types: */
 
     FLUFFY_DEFINE_EXCEPTION_UNUSED(Fluffy::Exception, Exception);
+
+    /**
+     * The randomness engine types available in the code.
+     */
+    enum Type {
+        INVALID,
+        /*! An engine based on the SNOW2 stream cipher */
+        SNOW2,
+        /*! An engine based on the OpenSSL RAND_bytes function */
+        OPENSSL
+    };
 
 public: /* Methods: */
 
@@ -51,6 +64,16 @@ public: /* Methods: */
         fillBytes(memptr, size);
         return size;
     }
+
+    static Type stringToRandomEngineType(const std::string & value)
+            noexcept;
+
+    static IRandom * newRandomEngine(const LogHard::Logger & logger,
+                                     const Type type);
+
+    static IRandom * newRandomEngine(const LogHard::Logger & logger,
+                                     const std::string & type)
+    { return newRandomEngine(logger, stringToRandomEngineType(type)); }
 
 }; /* class IRandom { */
 
