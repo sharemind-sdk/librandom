@@ -10,8 +10,8 @@
 #ifndef SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
 #define SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
 
-#include "common/Random/RandomEngine.h"
-#include <openssl/rand.h>
+#include "RandomEngine.h"
+
 
 namespace sharemind {
 

@@ -10,7 +10,8 @@
 #ifndef SHAREMINDCOMMON_RANDOMENGINE_H
 #define SHAREMINDCOMMON_RANDOMENGINE_H
 
-#include "common/Logger/Logger.h"
+#include "../Logger/Logger.h"
+
 
 namespace sharemind {
 

@@ -10,12 +10,12 @@
 #ifndef SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
 #define SHAREMINDCOMMON_SNOW2RANDOMENGINE_H
 
-#include "common/Random/RandomEngine.h"
-namespace sharemind {
+#include "RandomEngine.h"
 
-extern "C" {
-#include "snow2_fast.h"
-}
+#include <stdint.h>
+
+
+namespace sharemind {
 
 /**
  * A randomness engine based on the SNOW 2 stream cipher.

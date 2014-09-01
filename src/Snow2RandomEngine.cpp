@@ -7,10 +7,14 @@
  * code is subject to the appropriate license agreement.
  */
 
-#include "common/Random/Snow2RandomEngine.h"
-#include "common/Random/OpenSSLRandomEngine.h"
+#include "Snow2RandomEngine.h"
 
 #include <cstring>
+#include "OpenSSLRandomEngine.h"
+extern "C" {
+#include "snow2_fast.h"
+}
+
 
 namespace sharemind {
 

@@ -7,11 +7,12 @@
  * code is subject to the appropriate license agreement.
  */
 
-#include <GetTime.h>
-#include "common/Logger/Logger.h"
-#include "common/Random/Random.h"
-#include "common/Random/Snow2RandomEngine.h"
-#include "common/Random/OpenSSLRandomEngine.h"
+#include "Random.h"
+
+#include "../Logger/Logger.h"
+#include "OpenSSLRandomEngine.h"
+#include "Snow2RandomEngine.h"
+
 
 using namespace sharemind;
 

@@ -12,9 +12,9 @@
 
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/is_pointer.hpp>
+#include "../Logger/Logger.h"
+#include "RandomEngine.h"
 
-#include "common/Random/RandomEngine.h"
-#include "common/Logger/Logger.h"
 
 namespace sharemind {
 

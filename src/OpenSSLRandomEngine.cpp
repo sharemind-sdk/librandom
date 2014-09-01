@@ -7,9 +7,11 @@
  * code is subject to the appropriate license agreement.
  */
 
-#include <GetTime.h>
-#include "common/Logger/Logger.h"
-#include "common/Random/OpenSSLRandomEngine.h"
+#include "OpenSSLRandomEngine.h"
+
+#include <openssl/rand.h>
+#include "../Logger/Logger.h"
+
 
 namespace sharemind {
 
