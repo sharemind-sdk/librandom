@@ -13,8 +13,9 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <fluffy/Exception.h>
+#include <exception>
 #include <LogHard/Logger.h>
+#include <sharemind/Exception.h>
 #include <string>
 
 
@@ -25,7 +26,7 @@ class IRandom {
 
 public: /* Types: */
 
-    FLUFFY_DEFINE_EXCEPTION_UNUSED(Fluffy::Exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION_UNUSED(std::exception, Exception);
 
     /**
      * The randomness engine types available in the code.

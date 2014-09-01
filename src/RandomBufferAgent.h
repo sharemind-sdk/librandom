@@ -13,8 +13,8 @@
 #include "IRandom.h"
 
 #include <fluffy/CircBufferSCSP.h>
-#include <fluffy/PotentiallyVoidTypeInfo.h>
-#include <fluffy/Stoppable.h>
+#include <sharemind/PotentiallyVoidTypeInfo.h>
+#include <sharemind/Stoppable.h>
 #include <thread>
 
 
@@ -55,7 +55,7 @@ public: /* Methods: */
             assert(read <= size);
             if (read >= size)
                 return;
-            memptr = Fluffy::PotentiallyVoidTypeInfo<void>::ptrAdd(memptr, read);
+            memptr = PotentiallyVoidTypeInfo<void>::ptrAdd(memptr, read);
             size -= read;
             m_buffer.waitDataAvailable();
         }
@@ -65,7 +65,7 @@ private: /* Methods: */
 
     void fillerThread() noexcept {
         struct GracefulStop {};
-        typedef Fluffy::Stoppable::TestActor<GracefulStop> STA;
+        typedef Stoppable::TestActor<GracefulStop> STA;
         try {
             for (;;) {
                 m_buffer.write(m_engine);
@@ -78,7 +78,7 @@ private: /* Fields: */
 
     IRandom & m_engine;
     Fluffy::CircBufferSCSP<void> m_buffer;
-    Fluffy::Stoppable m_stoppable;
+    Stoppable m_stoppable;
     std::thread m_thread;
 
 }; /* class IRandom { */
