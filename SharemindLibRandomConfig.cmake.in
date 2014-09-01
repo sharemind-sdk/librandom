@@ -1,0 +1,17 @@
+#
+# Copyright (C) Cybernetica AS
+#
+# All rights are reserved. Reproduction in whole or part is prohibited
+# without the written consent of the copyright owner. The usage of this
+# code is subject to the appropriate license agreement.
+#
+
+# This file defines the following variables:
+#   SharemindLibRandom_INCLUDE_DIRS - include directories
+#   SharemindLibRandom_LIBRARIES    - libraries to link against
+#   SharemindLibRandom_DEFINITIONS  - required compiler definitions
+
+
+SET(SharemindLibRandom_INCLUDE_DIRS @SHAREMIND_LIBRANDOM_INSTALL_INCLUDE_DIRS@)
+SET(SharemindLibRandom_LIBRARIES @SHAREMIND_LIBRANDOM_INSTALL_LINK_LIBRARIES@)
+SET(SharemindLibRandom_DEFINITIONS @SHAREMIND_LIBRANDOM_INSTALL_DEFINITIONS@)
