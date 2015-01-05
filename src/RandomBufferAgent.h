@@ -69,12 +69,12 @@ private: /* Methods: */
         typedef Stoppable::TestActor<GracefulStop> STA;
         struct POE: std::exception { inline POE(size_t const) noexcept {}; };
         try {
-            try {
-                for (;;) {
+            for (;;) {
+                try {
                     m_buffer.write<POE>(m_engine);
                     m_buffer.waitSpaceAvailable(STA(m_stoppable));
-                }
-            } catch (POE const &) {}
+                } catch (POE const &) {}
+            }
         } catch (const GracefulStop &) {}
     }
 
