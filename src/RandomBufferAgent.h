@@ -12,7 +12,8 @@
 
 #include "IRandom.h"
 
-#include <fluffy/CircBufferSCSP.h>
+#include <exception>
+#include <sharemind/CircBufferSCSP.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
 #include <sharemind/Stoppable.h>
 #include <thread>
@@ -66,18 +67,21 @@ private: /* Methods: */
     void fillerThread() noexcept {
         struct GracefulStop {};
         typedef Stoppable::TestActor<GracefulStop> STA;
+        struct POE: std::exception { inline POE(size_t const) noexcept {}; };
         try {
-            for (;;) {
-                m_buffer.write(m_engine);
-                m_buffer.waitSpaceAvailable(STA(m_stoppable));
-            }
+            try {
+                for (;;) {
+                    m_buffer.write<POE>(m_engine);
+                    m_buffer.waitSpaceAvailable(STA(m_stoppable));
+                }
+            } catch (POE const &) {}
         } catch (const GracefulStop &) {}
     }
 
 private: /* Fields: */
 
     IRandom & m_engine;
-    Fluffy::CircBufferSCSP<void> m_buffer;
+    CircBufferSCSP<void> m_buffer;
     Stoppable m_stoppable;
     std::thread m_thread;
 
