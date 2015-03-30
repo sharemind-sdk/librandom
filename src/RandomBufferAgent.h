@@ -77,13 +77,10 @@ private: /* Methods: */
     void fillerThread() noexcept {
         struct GracefulStop {};
         typedef Stoppable::TestActor<GracefulStop> STA;
-        struct POE: std::exception { inline POE(size_t const) noexcept {}; };
         try {
             for (;;) {
-                try {
-                    m_buffer.write<POE>(m_engine);
-                    m_buffer.waitSpaceAvailable(STA(m_stoppable));
-                } catch (POE const &) {}
+                m_buffer.write(m_engine);
+                m_buffer.waitSpaceAvailable(STA(m_stoppable));
             }
         } catch (const GracefulStop &) {}
     }
