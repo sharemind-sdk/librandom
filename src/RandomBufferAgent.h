@@ -76,11 +76,12 @@ private: /* Methods: */
 
     void fillerThread() noexcept {
         struct GracefulStop {};
-        typedef Stoppable::TestActor<GracefulStop> STA;
         try {
             for (;;) {
                 m_buffer.write(m_engine);
-                m_buffer.waitSpaceAvailable(STA(m_stoppable));
+                m_buffer.waitSpaceAvailable(
+                            Stoppable::TestActor<GracefulStop>{m_stoppable},
+                            sharemind::StaticLoopDuration<10>{});
             }
         } catch (const GracefulStop &) {}
     }
