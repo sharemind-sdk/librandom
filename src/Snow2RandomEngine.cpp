@@ -354,6 +354,10 @@ void Snow2RandomEngine::snow_keystream_fast_p()
 void Snow2RandomEngine::Seed() noexcept {
     uint8_t snowkey[32];
     uint32_t iv [4];
+    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
+    VALGRIND_MAKE_MEM_DEFINED(iv, sizeof(iv));
+    #endif
     {
         OpenSSLRandomEngine rng;
         rng.fillBytes(snowkey, sizeof(snowkey));
@@ -365,6 +369,10 @@ void Snow2RandomEngine::Seed() noexcept {
 void Snow2RandomEngine::Seed(const void * memptr_, size_t size) noexcept {
     uint8_t snowkey[32];
     uint32_t iv [4];
+    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
+    VALGRIND_MAKE_MEM_DEFINED(iv, sizeof(iv));
+    #endif
     assert (size == sizeof (snowkey) + sizeof (iv));
     if (size != sizeof (snowkey) + sizeof (iv)) {
         // Fallback in case of misuse in non-debug situation.

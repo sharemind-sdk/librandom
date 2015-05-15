@@ -23,6 +23,9 @@
 #include "IRandom.h"
 
 #include <cstdint>
+#ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+#include <valgrind/memcheck.h>
+#endif
 
 
 namespace sharemind {
@@ -37,7 +40,12 @@ class Snow2RandomEngine: public IRandom {
 public: /* Methods: */
 
     Snow2RandomEngine() noexcept
-        : keystream_ready(sizeof(keystream)) {}
+        : keystream_ready(sizeof(keystream))
+    {
+        #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+        VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Snow2RandomEngine));
+        #endif
+    }
 
     void Seed() noexcept final override;
 
