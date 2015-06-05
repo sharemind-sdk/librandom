@@ -37,10 +37,10 @@ void OpenSSLRandomEngine::fillBytes (void * memptr, size_t size) noexcept {
     VALGRIND_MAKE_MEM_DEFINED(memptr, size);
     #endif
     #ifndef NDEBUG
-    const bool RANDbytesOK =
+    auto const r =
     #endif
-            (RAND_bytes(static_cast<unsigned char*>(memptr), size) == 1);
-    assert (RANDbytesOK);
+            RAND_bytes(static_cast<unsigned char*>(memptr), size);
+    assert(r == 1);
 }
 
 } // namespace sharemind
