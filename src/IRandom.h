@@ -72,7 +72,7 @@ public: /* Methods: */
     }
 
     template <typename T>
-    inline T randomValue() noexcept {
+    inline T randomValue() noexcept(noexcept(T(T()))) {
         T value;
         fillBytes(&value, sizeof(T));
         return value;
