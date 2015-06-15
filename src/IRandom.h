@@ -71,6 +71,13 @@ public: /* Methods: */
             fillBytes(begin, sizeof(T)*std::distance(begin, end));
     }
 
+    template <typename T>
+    inline T randomValue() noexcept {
+        T value;
+        fillBytes(&value, sizeof(T));
+        return value;
+    }
+
     inline size_t operator()(void * memptr, size_t size) noexcept {
         fillBytes(memptr, size);
         return size;
