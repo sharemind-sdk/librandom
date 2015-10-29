@@ -45,6 +45,12 @@ private: /* Methods: */
         }
     }
 
+    ~OpenSSLInit() {
+        EVP_cleanup();
+        SSL_COMP_free_compression_methods();
+        CRYPTO_cleanup_all_ex_data();
+    }
+
     static void openssl_locking_callback(int mode,
                                          int n,
                                          const char *,

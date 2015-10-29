@@ -19,28 +19,55 @@
 
 #include "OpenSSLRandomEngine.h"
 
+#include "RandomEngine.h"
+
 #include <cassert>
+#include <climits>
 #include <openssl/rand.h>
 #ifdef SHAREMIND_INSTRUCT_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
 
+namespace /* anonymous */ {
 
-namespace sharemind {
-
-void OpenSSLRandomEngine::Seed(const void * memptr, size_t size) noexcept {
-     RAND_seed (memptr, size);
+extern "C"
+SharemindRandomEngineSeedError OpenSSLRandomEngine_seed_hardware(SharemindRandomEngine*) {
+    return SHAREMIND_RANDOM_SEED_OK;
 }
 
-void OpenSSLRandomEngine::fillBytes (void * memptr, size_t size) noexcept {
-    #ifdef SHAREMIND_INSTRUCT_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(memptr, size);
-    #endif
+extern "C"
+SharemindRandomEngineSeedError OpenSSLRandomEngine_seed(SharemindRandomEngine*, const void *, size_t) {
+    return SHAREMIND_RANDOM_SEED_NOT_SUPPORTED;
+}
+
+extern "C"
+void OpenSSLRandomEngine_fill_bytes(SharemindRandomEngine*, void* memptr_, size_t size) {
+    assert (size <= INT_MAX);
+    const auto memptr = static_cast<unsigned char*>(memptr_);
     #ifndef NDEBUG
     auto const r =
     #endif
-            RAND_bytes(static_cast<unsigned char*>(memptr), size);
+        RAND_bytes(memptr, size);
     assert(r == 1);
+}
+
+extern "C"
+void OpenSSLRandomEngine_free(SharemindRandomEngine*) { }
+
+static SharemindRandomEngine OpenSSL_random_engine = SharemindRandomEngine {
+    size_t(0),
+    OpenSSLRandomEngine_seed_hardware,
+    OpenSSLRandomEngine_seed,
+    OpenSSLRandomEngine_fill_bytes,
+    OpenSSLRandomEngine_free
+};
+
+} // namespace anonymous
+
+namespace sharemind {
+
+SharemindRandomEngine* make_OpenSSL_random_engine() noexcept {
+    return &OpenSSL_random_engine;
 }
 
 } // namespace sharemind

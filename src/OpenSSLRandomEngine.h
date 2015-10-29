@@ -17,27 +17,19 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
-#define SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H
+#ifndef SHAREMIND_LIBRANDOM_OPENSSLRANDOMENGINE_H
+#define SHAREMIND_LIBRANDOM_OPENSSLRANDOMENGINE_H
 
-#include "IRandom.h"
-
+#include "librandom.h"
 
 namespace sharemind {
 
-/** A randomness engine based on OpenSSL RAND_bytes(). */
-class OpenSSLRandomEngine: public IRandom {
-
-public: /* Methods: */
-
-    inline void Seed() noexcept final override {}
-
-    void Seed(const void * memptr, size_t size) noexcept final override;
-
-    void fillBytes(void * memptr, size_t size) noexcept final override;
-
-};
+/**
+ * \brief Construct a random engine based on OpenSSL RAND_bytes function.
+ * \returns A new instance of the random engine.
+ */
+SharemindRandomEngine* make_OpenSSL_random_engine() noexcept;
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMINDCOMMON_OPENSSLRANDOMENGINE_H */
+#endif /* SHAREMIND_LIBRANDOM_OPENSSLRANDOMENGINE_H */

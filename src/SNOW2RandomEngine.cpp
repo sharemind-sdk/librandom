@@ -17,20 +17,76 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include "Snow2RandomEngine.h"
+#include "SNOW2RandomEngine.h"
 
+#include "RandomEngine.h"
+
+#include <cassert>
+#include <cstdint>
 #include <cstring>
-#include "OpenSSLRandomEngine.h"
-extern "C" {
-#include "snow2tab.h"
-}
+#include <openssl/rand.h>
+#ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+#include <valgrind/memcheck.h>
+#endif
 
 #define byte(n,w)   (((w)>>(n*8)) & 0xff)
 #define ainv_mul(w) (((w)>>8)^(snow_alphainv_mul[w&0xff]))
 #define a_mul(w)    (((w)<<8)^(snow_alpha_mul[w>>24]))
 
+using namespace sharemind;
 
-namespace sharemind {
+namespace /* anonymouse */ {
+
+// Intentionally included inside anonymous namespace!
+#include "snow2tab.h"
+
+inline size_t SNOW2RandomEngine_seed_size() noexcept {
+    return sizeof(uint8_t)*32 + sizeof(uint32_t)*4;
+}
+
+extern "C" {
+SharemindRandomEngineSeedError SNOW2RandomEngine_seed_hardware(SharemindRandomEngine* rng_);
+SharemindRandomEngineSeedError SNOW2RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size);
+void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
+void SNOW2RandomEngine_free(SharemindRandomEngine* rng_);
+}
+
+class SNOW2RandomEngine: public SharemindRandomEngine {
+public: /* Methods: */
+
+    inline SNOW2RandomEngine() noexcept
+        : SharemindRandomEngine {
+              SNOW2RandomEngine_seed_size(),
+              SNOW2RandomEngine_seed_hardware,
+              SNOW2RandomEngine_seed,
+              SNOW2RandomEngine_fill_bytes,
+              SNOW2RandomEngine_free
+          }
+        , keystream_ready(sizeof(keystream))
+    {
+        #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+        VALGRIND_MAKE_MEM_DEFINED(this, sizeof(SNOW2RandomEngine));
+        #endif
+    }
+
+    inline static SNOW2RandomEngine& fromWrapper(SharemindRandomEngine& base) noexcept {
+        return static_cast<SNOW2RandomEngine&>(base);
+    }
+
+    inline void snow_loadkey_fast_p(uint8_t * key, uint32_t keysize, uint32_t IV3, uint32_t IV2, uint32_t IV1, uint32_t IV0) noexcept;
+
+    inline void snow_keystream_fast_p() noexcept;
+
+public: /* Fields: */
+
+    uint32_t s15, s14, s13, s12, s11, s10, s9, s8, s7, s6, s5, s4, s3, s2, s1, s0;
+    uint32_t r1, r2;
+    uint8_t keystream_ready;
+    union {
+        uint32_t keystream[16];
+        uint8_t un_byte_keystream[sizeof(uint32_t) * 16];
+    };
+};
 
 /*
  * Function:  snow_loadkey_fast
@@ -70,7 +126,8 @@ namespace sharemind {
  * SE-221 00 Lund, Sweden,
  * email: {patrik,thomas}@it.lth.se
  */
-void Snow2RandomEngine::snow_loadkey_fast_p(uint8_t *key,uint32_t keysize,uint32_t IV3,uint32_t IV2,uint32_t IV1,uint32_t IV0)
+
+inline void SNOW2RandomEngine::snow_loadkey_fast_p (uint8_t *key, uint32_t keysize,uint32_t IV3, uint32_t IV2, uint32_t IV1, uint32_t IV0) noexcept
 {
     if (keysize==128) {
         s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
@@ -251,7 +308,7 @@ void Snow2RandomEngine::snow_loadkey_fast_p(uint8_t *key,uint32_t keysize,uint32
  * email: {patrik,thomas}@it.lth.se
  *
  */
-void Snow2RandomEngine::snow_keystream_fast_p()
+inline void SNOW2RandomEngine::snow_keystream_fast_p() noexcept
 {
 
     s0 =a_mul(s0 )^ s2 ^ainv_mul(s11 );
@@ -351,62 +408,104 @@ void Snow2RandomEngine::snow_keystream_fast_p()
     keystream[15]=(r1+ s15 )^r2^ s0 ;
 }
 
-void Snow2RandomEngine::Seed() noexcept {
+extern "C"
+SharemindRandomEngineSeedError SNOW2RandomEngine_seed_hardware(SharemindRandomEngine* rng_)
+{
+    assert (rng_ != nullptr);
+    uint32_t iv [4];
+
+    uint8_t snowkey[32];
+    uint8_t ivkey[sizeof(iv)];
+
+    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
+    VALGRIND_MAKE_MEM_DEFINED(ivkey, sizeof(iv));
+    #endif
+
+    const auto keyOk = RAND_bytes(&snowkey[0], sizeof (snowkey));
+    if (keyOk != 1) {
+        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
+    }
+
+    const auto ivOk = RAND_bytes(&ivkey[0], sizeof (iv));
+    if (ivOk != 1) {
+        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
+    }
+
+    memcpy (&iv[0], &ivkey[0], sizeof (iv));
+    auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
+    rng.snow_loadkey_fast_p (snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
+    return SHAREMIND_RANDOM_SEED_OK;
+}
+
+extern "C"
+SharemindRandomEngineSeedError SNOW2RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size)
+{
+    assert (rng_ != nullptr);
+    assert (memptr_ != nullptr);
+
     uint8_t snowkey[32];
     uint32_t iv [4];
+
+    if (size != rng_->seed_size) {
+        return SHAREMIND_RANDOM_SEED_INSUFFICIENT_ENTROPY;
+    }
+
     #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
     VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
     VALGRIND_MAKE_MEM_DEFINED(iv, sizeof(iv));
     #endif
-    {
-        OpenSSLRandomEngine rng;
-        rng.fillBytes(snowkey, sizeof(snowkey));
-        rng.fillBytes(iv, sizeof(iv));
-    }
-    snow_loadkey_fast_p (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
+
+    const auto memptr = static_cast<const uint8_t*>(memptr_);
+    memcpy (snowkey, memptr, sizeof (snowkey));
+    memcpy (iv, memptr + sizeof (snowkey), sizeof (iv));
+
+    auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
+    rng.snow_loadkey_fast_p (snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
+    return SHAREMIND_RANDOM_SEED_OK;
 }
 
-void Snow2RandomEngine::Seed(const void * memptr_, size_t size) noexcept {
-    uint8_t snowkey[32];
-    uint32_t iv [4];
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
-    VALGRIND_MAKE_MEM_DEFINED(iv, sizeof(iv));
-    #endif
-    assert (size == sizeof (snowkey) + sizeof (iv));
-    if (size != sizeof (snowkey) + sizeof (iv)) {
-        // Fallback in case of misuse in non-debug situation.
-        Seed ();
-    }
-    else {
-        const uint8_t* memptr = static_cast<const uint8_t*>(memptr_);
-        memcpy (snowkey, memptr, sizeof (snowkey));
-        memcpy (iv, memptr + sizeof (snowkey), sizeof (iv));
-        snow_loadkey_fast_p (snowkey, 128, iv[0], iv[1], iv[2], iv[3]);
-    }
-}
+extern "C"
+void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
+{
+    assert (rng_ != nullptr);
+    assert (memptr_ != nullptr);
 
-void Snow2RandomEngine::fillBytes(void * memptr_, size_t size) noexcept {
+    auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
+
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
-    size_t currentKeystreamSize = sizeof (keystream) - keystream_ready;
+    size_t currentKeystreamSize = sizeof (rng.keystream) - rng.keystream_ready;
     size_t offsetStart = 0;
     size_t offsetEnd = currentKeystreamSize;
 
     // Fill big chunks
     while (offsetEnd <= size) {
-        memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], currentKeystreamSize);
-        snow_keystream_fast_p();
-        keystream_ready = 0;
-        currentKeystreamSize = sizeof (keystream);
+        memcpy (memptr + offsetStart, &rng.un_byte_keystream[rng.keystream_ready], currentKeystreamSize);
+        rng.snow_keystream_fast_p();
+        rng.keystream_ready = 0;
+        currentKeystreamSize = sizeof (rng.keystream);
         offsetStart = offsetEnd;
-        offsetEnd += sizeof (keystream);
+        offsetEnd += sizeof (rng.keystream);
     }
 
     const size_t remainingSize = size - offsetStart;
-    memcpy (memptr + offsetStart, &un_byte_keystream[keystream_ready], remainingSize);
-    keystream_ready += remainingSize;
-    assert (keystream_ready <= sizeof(keystream)); // the supply may deplete
-    return;
+    memcpy (memptr + offsetStart, &rng.un_byte_keystream[rng.keystream_ready], remainingSize);
+    rng.keystream_ready += remainingSize;
+    assert (rng.keystream_ready <= sizeof(rng.keystream)); // the supply may deplete
 }
 
-} // namespace sharemind
+extern "C"
+void SNOW2RandomEngine_free(SharemindRandomEngine* rng_) {
+    assert (rng_ != nullptr);
+    delete &SNOW2RandomEngine::fromWrapper(*rng_);
+}
+
+} // namespace anonymous
+
+namespace sharemind {
+
+SharemindRandomEngine* make_SNOW2_random_engine() {
+    return new SNOW2RandomEngine {};
+}
+
+}

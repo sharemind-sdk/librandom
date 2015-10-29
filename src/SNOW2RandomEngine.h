@@ -17,20 +17,20 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
-#define SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
+#ifndef SHAREMIND_LIBRANDOM_SNOW2RANDOMENGINE_H
+#define SHAREMIND_LIBRANDOM_SNOW2RANDOMENGINE_H
 
 #include "librandom.h"
 
 namespace sharemind {
 
 /**
- * \brief Construct a random engine that only generates zeroes.
- * \note This is only useful for debugging.
- * \returns A new instance of the engine.
+ * \brief Construct a random engine based on SNOW2 stream cipher.
+ * \returns A new instance of the random engine.
+ * \throws std::bad_alloc
  */
-SharemindRandomEngine* make_null_random_engine() noexcept;
+SharemindRandomEngine* make_SNOW2_random_engine();
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H */
+#endif /* SHAREMIND_LIBRANDOM_SNOW2RANDOMENGINE_H */

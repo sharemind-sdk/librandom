@@ -17,20 +17,19 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
-#define SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
+#ifndef SHAREMIND_LIBRANDOM_CHACHA20RANDOMENGINE_H
+#define SHAREMIND_LIBRANDOM_CHACHA20RANDOMENGINE_H
 
 #include "librandom.h"
 
 namespace sharemind {
 
 /**
- * \brief Construct a random engine that only generates zeroes.
- * \note This is only useful for debugging.
+ * \brief Construct a random engine based on chacha20 stream cipher.
  * \returns A new instance of the engine.
  */
-SharemindRandomEngine* make_null_random_engine() noexcept;
+SharemindRandomEngine* make_ChaCha20_random_engine();
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H */
+#endif /* SHAREMIND_LIBRANDOM_CHACHA20RANDOMENGINE_H */
