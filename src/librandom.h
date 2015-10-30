@@ -71,7 +71,7 @@ typedef enum SharemindRandomEngineSeedError_ {
     /** Seeding succeeded. */
     SHAREMIND_RANDOM_SEED_OK = 0,
 
-    /** Seeding failed because the generator is already seeded and reseeding is not supported. */
+    /** Seeding failed because the generator is already seeded and re-seeding is not supported. */
     SHAREMIND_RANDOM_SEED_NOT_SUPPORTED,
 
     /** Seeding failed because user supplied too little entropy. */
@@ -80,7 +80,7 @@ typedef enum SharemindRandomEngineSeedError_ {
     /** Seeding failed due to some internal problem such as a library not working as expected. */
     SHAREMIND_RANDOM_SEED_INTERNAL_ERROR,
 
-    /** Seeding failed because of a hardware issue. */
+    /** Self-generating non-deterministic hardware seed failed. */
     SHAREMIND_RANDOM_SEED_HARDWARE_ERROR
 } SharemindRandomEngineSeedError;
 
@@ -110,7 +110,7 @@ struct SharemindRandomEngineFactoryFacility_ {
      * \note only modify the configuration when you absolutely must use
      * different random number generator than the one specified in the configuration.
      */
-    SharemindRandomEngineConf_ (* const get_default_configuration)(
+    SharemindRandomEngineConf (* const get_default_configuration)(
             const SharemindRandomEngineFactoryFacility* facility);
 
     /**
