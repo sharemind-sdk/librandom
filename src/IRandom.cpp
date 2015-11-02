@@ -41,11 +41,11 @@ IRandom * IRandom::newRandomEngine(const LogHard::Logger & logger,
     IRandom * engine;
     switch (type) {
         case OPENSSL:
-            logger.debug() << "Initializing the OpenSSL randomness engine.";
+            logger.fullDebug() << "Initializing the OpenSSL randomness engine.";
             engine = new OpenSSLRandomEngine();
             break;
         case SNOW2:
-            logger.debug() << "Initializing the SNOW 2 randomness engine.";
+            logger.fullDebug() << "Initializing the SNOW 2 randomness engine.";
             engine = new Snow2RandomEngine();
             break;
         default:
