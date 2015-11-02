@@ -86,6 +86,9 @@ public: /* Methods: */
         m_inner->fill_bytes (m_inner, memptr, numBytes);
     }
 
+    inline SharemindRandomEngine* getSharemindRandomEngine() noexcept { return m_inner; }
+    inline const SharemindRandomEngine* getSharemindRandomEngine() const noexcept { return m_inner; }
+
 private: /* Fields: */
     SharemindRandomEngine* m_inner;
 };
