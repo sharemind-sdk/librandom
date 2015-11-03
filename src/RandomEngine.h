@@ -22,6 +22,7 @@
 
 #include "librandom.h"
 
+#include <cassert>
 #include <cstdlib>
 
 namespace sharemind {
@@ -59,10 +60,12 @@ public: /* Methods: */
     }
 
     inline size_t seedSize () const noexcept {
+        assert (m_inner != nullptr);
         return m_inner->seed_size;
     }
 
     inline void seedHardware () {
+        assert (m_inner != nullptr);
         switch (m_inner->seed_hardware (m_inner)) {
         case SHAREMIND_RANDOM_SEED_OK:
             break;
@@ -73,6 +76,7 @@ public: /* Methods: */
     }
 
     inline void seed (const void* memptr, size_t numBytes) {
+        assert (m_inner != nullptr);
         switch (m_inner->seed (m_inner, memptr, numBytes)) {
         case SHAREMIND_RANDOM_SEED_OK:
             break;
@@ -82,8 +86,27 @@ public: /* Methods: */
         }
     }
 
+
     inline void fillBytes (void* memptr, size_t numBytes) noexcept {
+        assert (m_inner != nullptr);
         m_inner->fill_bytes (m_inner, memptr, numBytes);
+    }
+
+    template <typename T>
+    inline void fillBlock(T* begin, T* end) noexcept {
+        assert (m_inner != nullptr);
+        assert (begin <= end);
+        if (begin < end) {
+            fillBytes(begin, end - begin);
+        }
+    }
+
+    template <typename T>
+    inline T randomValue() noexcept(noexcept(T(T()))) {
+        assert (m_inner != nullptr);
+        T value;
+        fillBytes(&value, sizeof(T));
+        return value;
     }
 
     inline SharemindRandomEngine* getSharemindRandomEngine() noexcept { return m_inner; }
