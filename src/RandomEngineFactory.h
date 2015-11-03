@@ -36,6 +36,12 @@ public: /* Methods: */
         : m_inner (factory)
     { }
 
+    ~RandomEngineFactory() {
+        if (m_inner != nullptr) {
+            m_inner->free(m_inner);
+        }
+    }
+
     RandomEngineFactory (const RandomEngineFactory&) = delete;
     RandomEngineFactory& operator = (const RandomEngineFactory&) = delete;
 
@@ -65,6 +71,14 @@ public: /* Methods: */
     inline SharemindRandomEngine* getRandomEngine(SharemindRandomEngineConf conf) const noexcept {
         assert (m_inner != nullptr);
         return m_inner->get_random_engine(m_inner, conf);
+    }
+
+    inline SharemindRandomEngineFactoryFacility* getSharemindRandomEngineFactoryFacility() noexcept {
+        return m_inner;
+    }
+
+    inline const SharemindRandomEngineFactoryFacility* getSharemindRandomEngineFactoryFacility() const noexcept {
+        return m_inner;
     }
 
 private: /* Fields: */

@@ -40,6 +40,8 @@ SharemindRandomEngine* RandomEngineFactoryImpl_get_random_engine(
         const SharemindRandomEngineFactoryFacility* facility,
         SharemindRandomEngineConf conf);
 
+void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility);
+
 }
 
 class RandomEngineFactoryImpl: public SharemindRandomEngineFactoryFacility {
@@ -48,7 +50,8 @@ public: /* Methods: */
     inline RandomEngineFactoryImpl(SharemindRandomEngineConf conf)
         : SharemindRandomEngineFactoryFacility {
             RandomEngineFactoryImpl_get_default_configuration,
-            RandomEngineFactoryImpl_get_random_engine
+            RandomEngineFactoryImpl_get_random_engine,
+            RandomEngineFactoryImpl_free
         }
         , m_conf (conf)
     { }
@@ -119,6 +122,14 @@ SharemindRandomEngine* RandomEngineFactoryImpl_get_random_engine(
 
     return nullptr;
 }
+
+extern "C"
+void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility) {
+    if (facility != nullptr) {
+        delete &RandomEngineFactoryImpl::fromWrapper(*facility);
+    }
+}
+
 
 } // namespace anonymous
 

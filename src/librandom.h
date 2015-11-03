@@ -121,7 +121,15 @@ struct SharemindRandomEngineFactoryFacility_ {
     SharemindRandomEngine* (* const get_random_engine)(
             const SharemindRandomEngineFactoryFacility* facility,
             SharemindRandomEngineConf conf);
+
+    /**
+     * \param[in] facility pointer to this factory facility.
+     * \post The facility is no longer valid and any subsequent operations on it will have undefined behaviour.
+     * \brief frees this factory facility.
+     */
+    void (* const free)(SharemindRandomEngineFactoryFacility* facility);
 };
+
 
 /**
  * \param[in] rng pointer to this RNG engine.
