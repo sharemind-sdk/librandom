@@ -75,7 +75,7 @@ SharemindRandomEngine* getCoreEngine(SharemindCoreRandomEngineKind kind) noexcep
         switch (kind) {
         case SHAREMIND_RANDOM_NULL: return make_null_random_engine();
         case SHAREMIND_RANDOM_OPENSSL: return make_OpenSSL_random_engine();
-        case SHAREMIND_RANDOM_SNOW2: return make_OpenSSL_random_engine();
+        case SHAREMIND_RANDOM_SNOW2: return make_SNOW2_random_engine();
         case SHAREMIND_RANDOM_CHACHA20: return make_ChaCha20_random_engine();
         case SHAREMIND_RANDOM_AES: return make_AES_random_engine();
         default:
