@@ -99,7 +99,7 @@ inline void seedHandleExceptions(SharemindRandomEngineCtorError* e) noexcept {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY);
     }
     catch (...) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
     }
 }
 
@@ -181,7 +181,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
 
     const auto seedSize = getSeedSize(conf.core_engine);
     if (seedSize > size) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_INSUFFICIENT_ENTROPY);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT);
         return nullptr;
     }
 
@@ -221,7 +221,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
     }
 
     if (coreEngine == nullptr) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
         return nullptr;
     }
 
@@ -235,6 +235,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
         break;
     }
 
+    setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
     return nullptr;
 }
 

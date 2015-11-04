@@ -87,23 +87,35 @@ typedef enum SharemindRandomEngineCtorError_ {
     /** Construction succeeded. */
     SHAREMIND_RANDOM_CTOR_OK = 0,
 
+    /*
+     * Construction errors:
+     */
+
     /** The generator is not supported. */
-    SHAREMIND_RANDOM_CTOR_NOT_SUPPORTED,
+    SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED,
 
     /** Construction failed because of a memory error (for example std::bad_alloc). */
     SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY,
 
-    /** Seeding failed because user supplied too little entropy. */
-    SHAREMIND_RANDOM_CTOR_INSUFFICIENT_ENTROPY,
+    /** Construction failed due to some other problem (library not working as expected). */
+    SHAREMIND_RANDOM_CTOR_OTHER_ERROR,
 
-    /** Seeding failed due to some internal problem such as a library not working as expected. */
-    SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR,
+    /*
+     * Seeding errors:
+     */
 
-    /** Ctor failed because self-generating non-deterministic seed failed. */
+    /** Seeding failed because the user supplied too short seed. */
+    SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT,
+
+    /** Seeding failed because generated a non-deterministic seed failed. */
     SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR,
 
-    /** Ctor failed because fixing a seed is not supported by this generator. */
-    SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED
+    /** Seeding with a fixed seed is not supported by this generator. */
+    SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED,
+
+    /** Seeding failed due to some other problem (library not working as expected). */
+    SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR,
+
 } SharemindRandomEngineCtorError;
 
 /**

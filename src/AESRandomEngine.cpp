@@ -121,7 +121,7 @@ bool aes_seed_ctx(EVP_CIPHER_CTX* ctx,
                   SharemindRandomEngineCtorError* e) noexcept
 {
     if (! EVP_EncryptInit_ex (ctx, aes_cipher(), NULL, key, iv)) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR);
         return false;
     }
 
@@ -154,7 +154,7 @@ bool AESRandomEngine::aes_reseed_inner(SharemindRandomEngineCtorError* e) noexce
     int bytes_written = 0;
     if (! EVP_EncryptUpdate(&m_ctx_outer, &seed[0], &bytes_written, plaintext, plaintext_size)) {
         assert (false && "aes_reseed_inner: Encryption failed.");
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR);
         return false;
     }
 
@@ -162,7 +162,7 @@ bool AESRandomEngine::aes_reseed_inner(SharemindRandomEngineCtorError* e) noexce
 
     if (! EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytes_written, &bytes_written)) {
         assert (false && "aes_reseed_inner: EncryptFinal failed.");
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR);
         return false;
     }
 
@@ -249,7 +249,7 @@ SharemindRandomEngine* make_AES_random_engine(const void* memptr_, SharemindRand
 
     // Make sure that the cipher we use is defined.
     if (aes_cipher() == nullptr) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_NOT_SUPPORTED);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED);
         return nullptr;
     }
 
@@ -257,7 +257,7 @@ SharemindRandomEngine* make_AES_random_engine(const void* memptr_, SharemindRand
     const auto num_blocks = (AES_random_engine_seed_size() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
     const auto seed_size = num_blocks * AES_BLOCK_SIZE;
     if (seed_size > AES_STATIC_KEY_SIZE) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
         return nullptr;
     }
 
