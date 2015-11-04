@@ -176,7 +176,6 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
         SharemindRandomEngineCtorError* e)
 {
     assert (facility != nullptr);
-    assert (memptr != nullptr);
 
     // Verify seed:
 
