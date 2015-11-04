@@ -26,16 +26,6 @@
 namespace /* anonymous */ {
 
 extern "C"
-SharemindRandomEngineSeedError NullRandomEngine_seed_hardware(SharemindRandomEngine*) {
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
-SharemindRandomEngineSeedError NullRandomEngine_seed(SharemindRandomEngine*, const void *, size_t) {
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
 void NullRandomEngine_fill_bytes(SharemindRandomEngine*, void* memptr, size_t size) {
     bzero(memptr, size);
 }
@@ -44,9 +34,6 @@ extern "C"
 void NullRandomEngine_free(SharemindRandomEngine*) { }
 
 static SharemindRandomEngine null_random_engine = SharemindRandomEngine {
-        size_t(0),
-        NullRandomEngine_seed_hardware,
-        NullRandomEngine_seed,
         NullRandomEngine_fill_bytes,
         NullRandomEngine_free
 };

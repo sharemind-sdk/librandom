@@ -24,12 +24,17 @@
 
 namespace sharemind {
 
+size_t AES_random_engine_seed_size() noexcept;
+
+
 /**
  * \brief Construct a random engine based on AES in CTR mode.
  * \returns Either a new instance of the engine or a nullptr if the generator is not supported.
  * \throws std::bad_alloc
  */
-SharemindRandomEngine* make_AES_random_engine();
+SharemindRandomEngine* make_AES_random_engine(
+        const void* memptr_,
+        SharemindRandomEngineCtorError* e);
 
 } /* namespace sharemind { */
 

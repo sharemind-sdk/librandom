@@ -59,34 +59,6 @@ public: /* Methods: */
         }
     }
 
-    inline size_t seedSize () const noexcept {
-        assert (m_inner != nullptr);
-        return m_inner->seed_size;
-    }
-
-    inline void seedHardware () {
-        assert (m_inner != nullptr);
-        switch (m_inner->seed_hardware (m_inner)) {
-        case SHAREMIND_RANDOM_SEED_OK:
-            break;
-        default:
-            abort ();
-            break;
-        }
-    }
-
-    inline void seed (const void* memptr, size_t numBytes) {
-        assert (m_inner != nullptr);
-        switch (m_inner->seed (m_inner, memptr, numBytes)) {
-        case SHAREMIND_RANDOM_SEED_OK:
-            break;
-        default:
-            abort ();
-            break;
-        }
-    }
-
-
     inline void fillBytes (void* memptr, size_t numBytes) noexcept {
         assert (m_inner != nullptr);
         m_inner->fill_bytes (m_inner, memptr, numBytes);

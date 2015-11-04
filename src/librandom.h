@@ -64,27 +64,6 @@ typedef enum SharemindRandomEngineBufferingMode_ {
 } SharemindRandomEngineBufferingMode;
 
 /**
- * \brief Indicates if the RNG was seeded properly.
- */
-typedef enum SharemindRandomEngineSeedError_ {
-
-    /** Seeding succeeded. */
-    SHAREMIND_RANDOM_SEED_OK = 0,
-
-    /** Seeding failed because the generator is already seeded and re-seeding is not supported. */
-    SHAREMIND_RANDOM_SEED_NOT_SUPPORTED,
-
-    /** Seeding failed because user supplied too little entropy. */
-    SHAREMIND_RANDOM_SEED_INSUFFICIENT_ENTROPY,
-
-    /** Seeding failed due to some internal problem such as a library not working as expected. */
-    SHAREMIND_RANDOM_SEED_INTERNAL_ERROR,
-
-    /** Self-generating non-deterministic hardware seed failed. */
-    SHAREMIND_RANDOM_SEED_HARDWARE_ERROR
-} SharemindRandomEngineSeedError;
-
-/**
  * \brief Random engine configuration.
  * This indicates what core RNG engine to use, how to buffer the generated
  * randomness and, if so, how large buffer (in bytes) to use.
@@ -99,6 +78,33 @@ typedef struct SharemindRandomEngineConf_ {
     /** The buffer size in bytes. Only used if relevant to the buffering mode. */
     size_t                             buffer_size;
 } SharemindRandomEngineConf;
+
+/**
+ * \brief Indicates if the RNG was constructed properly.
+ */
+typedef enum SharemindRandomEngineCtorError_ {
+
+    /** Construction succeeded. */
+    SHAREMIND_RANDOM_CTOR_OK = 0,
+
+    /** The generator is not supported. */
+    SHAREMIND_RANDOM_CTOR_NOT_SUPPORTED,
+
+    /** Construction failed because of a memory error (for example std::bad_alloc). */
+    SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY,
+
+    /** Seeding failed because user supplied too little entropy. */
+    SHAREMIND_RANDOM_CTOR_INSUFFICIENT_ENTROPY,
+
+    /** Seeding failed due to some internal problem such as a library not working as expected. */
+    SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR,
+
+    /** Ctor failed because self-generating non-deterministic seed failed. */
+    SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR,
+
+    /** Ctor failed because fixing a seed is not supported by this generator. */
+    SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED
+} SharemindRandomEngineCtorError;
 
 /**
  * \brief Facility for creating random number generation engines.
@@ -116,11 +122,26 @@ struct SharemindRandomEngineFactoryFacility_ {
     /**
      * \param[in] facility pointer to this factory facility.
      * \param[in] conf the configuration that specified which random engine to use and how it's configured.
+     * \param[out] e error flag.
      * \returns a new random number generation engine.
+     * \brief construct a new random number generator with a fresh seed.
      */
-    SharemindRandomEngine* (* const get_random_engine)(
+    SharemindRandomEngine* (* const make_random_engine)(
             const SharemindRandomEngineFactoryFacility* facility,
-            SharemindRandomEngineConf conf);
+            SharemindRandomEngineConf conf,
+            SharemindRandomEngineCtorError* e);
+    /**
+     * \param[in] memptr pointer to the seed.
+     * \param[in] size of the seed.
+     * \brief construct a new random number generator with a given seed.
+     * \see make_random_engine for details.
+     */
+    SharemindRandomEngine* (* const make_random_engine_with_seed)(
+            const SharemindRandomEngineFactoryFacility* facility,
+            SharemindRandomEngineConf conf,
+            const void* memptr,
+            size_t size,
+            SharemindRandomEngineCtorError* e);
 
     /**
      * \param[in] facility pointer to this factory facility.
@@ -130,47 +151,24 @@ struct SharemindRandomEngineFactoryFacility_ {
     void (* const free)(SharemindRandomEngineFactoryFacility* facility);
 };
 
-
-/**
- * \param[in] rng pointer to this RNG engine.
- * \brief seed the random number generator using hardware randomness.
- */
-typedef SharemindRandomEngineSeedError (* SharemindRandomEngineSeedHardwareCallback)(SharemindRandomEngine* rng);
-
-/**
- * \param[in] rng pointer to this RNG engine.
- * \param[in] memptr pointer to the bytes to see the RNG with.
- * \param[in] size number of bytes to seed the RNG with.
- * \brief seed the random number generator.
- * \note if the supplied key is not sufficiently long it will be padded with zeroes.
- */
-typedef SharemindRandomEngineSeedError (* SharemindRandomEngineSeedCallback)(
-        SharemindRandomEngine* rng, const void* memptr, size_t size);
-
-/**
- * \param[in] rng pointer to this RNG engine.
- * \param[out] memptr memory region to randomize,
- * \param[in] size size of the memory region to randomize.
- */
-typedef void (* SharemindRandomEngineFillBytesCallback)(
-        SharemindRandomEngine* rng, void* memptr, size_t size);
-
-/**
- * \param[in] rng pointer to this RNG engine.
- * \post The RNG is no longer valid and any subsequent operations on it will have undefined behaviour.
- * \brief free the RNG.
- */
-typedef void (* SharemindRandomEngineFreeCallback)(SharemindRandomEngine* rng);
-
 /**
  * \brief Random number generation engine.
  */
 struct SharemindRandomEngine_ {
-    const size_t                                     seed_size;
-    const SharemindRandomEngineSeedHardwareCallback  seed_hardware;
-    const SharemindRandomEngineSeedCallback          seed;
-    const SharemindRandomEngineFillBytesCallback     fill_bytes;
-    const SharemindRandomEngineFreeCallback          free;
+
+    /**
+     * \param[in] rng pointer to this RNG engine.
+     * \param[out] memptr memory region to randomize,
+     * \param[in] size size of the memory region to randomize.
+     */
+    void (* const fill_bytes)(SharemindRandomEngine* rng, void* memptr, size_t size);
+
+    /**
+     * \param[in] rng pointer to this RNG engine.
+     * \post The RNG is no longer valid and any subsequent operations on it will have undefined behaviour.
+     * \brief free the RNG.
+     */
+    void (* const free)(SharemindRandomEngine* rng);
 };
 
 

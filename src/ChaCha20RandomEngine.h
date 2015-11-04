@@ -24,11 +24,14 @@
 
 namespace sharemind {
 
+size_t ChaCha20_random_engine_seed_size() noexcept;
+
+
 /**
  * \brief Construct a random engine based on chacha20 stream cipher.
  * \returns A new instance of the engine.
  */
-SharemindRandomEngine* make_ChaCha20_random_engine();
+SharemindRandomEngine* make_ChaCha20_random_engine(const void* memptr_);
 
 } /* namespace sharemind { */
 

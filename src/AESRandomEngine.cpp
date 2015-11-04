@@ -54,14 +54,14 @@ inline const EVP_CIPHER* aes_cipher() noexcept {
     return EVP_aes_128_ctr();
 }
 
-inline size_t AESRandomEngine_seed_size() noexcept {
-    return EVP_CIPHER_key_length(aes_cipher()) +
-           EVP_CIPHER_iv_length(aes_cipher());
+inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
+                         SharemindRandomEngineCtorError e)
+{
+    if (ptr != nullptr)
+        *ptr = e;
 }
 
 extern "C" {
-SharemindRandomEngineSeedError AESRandomEngine_seed_hardware(SharemindRandomEngine* rng_);
-SharemindRandomEngineSeedError AESRandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size);
 void AESRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
 void AESRandomEngine_free(SharemindRandomEngine* rng_);
 }
@@ -69,11 +69,8 @@ void AESRandomEngine_free(SharemindRandomEngine* rng_);
 class AESRandomEngine : public SharemindRandomEngine {
 public: /* Methods: */
 
-    inline AESRandomEngine() noexcept
+    inline AESRandomEngine(const void* memptr_, SharemindRandomEngineCtorError* e) noexcept
         : SharemindRandomEngine {
-              AESRandomEngine_seed_size(),
-              AESRandomEngine_seed_hardware,
-              AESRandomEngine_seed,
               AESRandomEngine_fill_bytes,
               AESRandomEngine_free
           }
@@ -89,6 +86,10 @@ public: /* Methods: */
         EVP_CIPHER_CTX_set_padding(&m_ctx_inner, 0);
         EVP_CIPHER_CTX_init(&m_ctx_outer);
         EVP_CIPHER_CTX_set_padding(&m_ctx_outer, 0);
+
+        uint8_t temp[AES_STATIC_KEY_SIZE];
+        memcpy(temp, memptr_, AES_random_engine_seed_size());
+        aes_seed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()), e);
     }
 
     ~AESRandomEngine() {
@@ -100,8 +101,8 @@ public: /* Methods: */
         return static_cast<AESRandomEngine&>(base);
     }
 
-    SharemindRandomEngineSeedError aes_seed(unsigned char* key, unsigned char* iv) noexcept;
-    SharemindRandomEngineSeedError aes_reseed_inner() noexcept;
+    bool aes_seed(unsigned char* key, unsigned char* iv, SharemindRandomEngineCtorError* e) noexcept;
+    bool aes_reseed_inner(SharemindRandomEngineCtorError* e) noexcept;
     void aes_next_block() noexcept;
 
 public: /* Fields: */
@@ -114,27 +115,31 @@ public: /* Fields: */
 };
 
 inline
-SharemindRandomEngineSeedError aes_seed_ctx(EVP_CIPHER_CTX* ctx,
-                                            unsigned char* key,
-                                            unsigned char* iv) noexcept
+bool aes_seed_ctx(EVP_CIPHER_CTX* ctx,
+                  unsigned char* key,
+                  unsigned char* iv,
+                  SharemindRandomEngineCtorError* e) noexcept
 {
     if (! EVP_EncryptInit_ex (ctx, aes_cipher(), NULL, key, iv)) {
-        return SHAREMIND_RANDOM_SEED_INTERNAL_ERROR;
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        return false;
     }
 
-    return SHAREMIND_RANDOM_SEED_OK;
+    return true;
 }
 
-SharemindRandomEngineSeedError AESRandomEngine::aes_seed(unsigned char* key, unsigned char* iv) noexcept {
-    const auto st = aes_seed_ctx(&m_ctx_outer, key, iv);
-    if (st != SHAREMIND_RANDOM_SEED_OK)
-        return st;
+bool AESRandomEngine::aes_seed(unsigned char* key,
+                               unsigned char* iv,
+                               SharemindRandomEngineCtorError* e) noexcept {
+    if (! aes_seed_ctx(&m_ctx_outer, key, iv, e)) {
+        return false;
+    }
 
-    return aes_reseed_inner();
+    return aes_reseed_inner(e);
 }
 
-SharemindRandomEngineSeedError AESRandomEngine::aes_reseed_inner() noexcept {
-    const auto num_blocks = (seed_size + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
+bool AESRandomEngine::aes_reseed_inner(SharemindRandomEngineCtorError* e) noexcept {
+    const auto num_blocks = (AES_random_engine_seed_size() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
     const auto plaintext_size = num_blocks * AES_BLOCK_SIZE;
     assert (plaintext_size < AES_STATIC_KEY_SIZE);
     uint8_t plaintext[AES_STATIC_KEY_SIZE];
@@ -149,23 +154,26 @@ SharemindRandomEngineSeedError AESRandomEngine::aes_reseed_inner() noexcept {
     int bytes_written = 0;
     if (! EVP_EncryptUpdate(&m_ctx_outer, &seed[0], &bytes_written, plaintext, plaintext_size)) {
         assert (false && "aes_reseed_inner: Encryption failed.");
-        return SHAREMIND_RANDOM_SEED_INTERNAL_ERROR;
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        return false;
     }
 
     assert (bytes_written > 0 && static_cast<decltype(plaintext_size)>(bytes_written) == plaintext_size);
 
     if (! EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytes_written, &bytes_written)) {
         assert (false && "aes_reseed_inner: EncryptFinal failed.");
-        return SHAREMIND_RANDOM_SEED_INTERNAL_ERROR;
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
+        return false;
     }
 
     assert(bytes_written == 0);
-    return aes_seed_ctx (&m_ctx_inner, &seed[0], &seed[0] + EVP_CIPHER_key_length(aes_cipher()));
+    const auto keyLen = EVP_CIPHER_key_length(aes_cipher());
+    return aes_seed_ctx(&m_ctx_inner, &seed[0], &seed[0] + keyLen, e);
 }
 
 void AESRandomEngine::aes_next_block() noexcept {
     if (m_counter_inner >= AES_COUNTER_LIMIT) {
-        aes_reseed_inner();
+        (void) aes_reseed_inner(nullptr);
         m_counter_inner = 0;
     }
 
@@ -189,45 +197,6 @@ void AESRandomEngine::aes_next_block() noexcept {
     }
 
     assert(bytes_written == 0);
-}
-
-extern "C"
-SharemindRandomEngineSeedError AESRandomEngine_seed_hardware(SharemindRandomEngine* rng_)
-{
-    assert (rng_ != nullptr);
-
-    const auto size = rng_->seed_size;
-    assert (size < AES_STATIC_KEY_SIZE);
-    uint8_t temp[AES_STATIC_KEY_SIZE];
-
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(temp, size);
-    #endif
-
-    const auto ok = RAND_bytes(&temp[0], size);
-    if (ok != 1) {
-        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
-    }
-
-    auto& rng = AESRandomEngine::fromWrapper(*rng_);
-    return rng.aes_seed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()));
-}
-
-extern "C"
-SharemindRandomEngineSeedError AESRandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size)
-{
-    assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
-
-    if (size < rng_->seed_size) {
-        return SHAREMIND_RANDOM_SEED_INSUFFICIENT_ENTROPY;
-    }
-
-    assert (size < AES_STATIC_KEY_SIZE);
-    uint8_t temp[AES_STATIC_KEY_SIZE];
-    memcpy(temp, memptr_, size);
-    auto& rng = AESRandomEngine::fromWrapper(*rng_);
-    return rng.aes_seed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()));
 }
 
 extern "C"
@@ -269,20 +238,30 @@ void AESRandomEngine_free(SharemindRandomEngine* rng_) {
 
 namespace sharemind {
 
-SharemindRandomEngine* make_AES_random_engine() {
+size_t AES_random_engine_seed_size() noexcept {
+    if (aes_cipher() == nullptr)
+        return 0;
+
+    return EVP_CIPHER_key_length(aes_cipher()) + EVP_CIPHER_iv_length(aes_cipher());
+}
+
+SharemindRandomEngine* make_AES_random_engine(const void* memptr_, SharemindRandomEngineCtorError* e) {
+
     // Make sure that the cipher we use is defined.
     if (aes_cipher() == nullptr) {
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_NOT_SUPPORTED);
         return nullptr;
     }
 
     // Make sure that our seed, aligned to AES_BLOCK_SIZE, fits into AES_STATIC_KEY_SIZE.
-    const auto num_blocks = (AESRandomEngine_seed_size() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
+    const auto num_blocks = (AES_random_engine_seed_size() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
     const auto seed_size = num_blocks * AES_BLOCK_SIZE;
     if (seed_size > AES_STATIC_KEY_SIZE) {
+        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_INTERNAL_ERROR);
         return nullptr;
     }
 
-    return new AESRandomEngine {};
+    return new AESRandomEngine {memptr_, e};
 }
 
 }

@@ -58,13 +58,7 @@ inline uint32_t u8to32_little (const uint8_t* p) noexcept {
     return p0 | (p1 << 8) | (p2 << 16) | (p3 << 24);
 }
 
-inline size_t ChaCha20RandomEngine_seed_size() noexcept {
-    return CHACHA20_KEY_SIZE + CHACHA20_NONCE_SIZE;
-}
-
 extern "C" {
-SharemindRandomEngineSeedError ChaCha20RandomEngine_seed_hardware(SharemindRandomEngine* rng_);
-SharemindRandomEngineSeedError ChaCha20RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size);
 void ChaCha20RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
 void ChaCha20RandomEngine_free(SharemindRandomEngine* rng_);
 }
@@ -72,11 +66,8 @@ void ChaCha20RandomEngine_free(SharemindRandomEngine* rng_);
 class ChaCha20RandomEngine : public SharemindRandomEngine {
 public: /* Methods: */
 
-    inline ChaCha20RandomEngine() noexcept
+    inline explicit ChaCha20RandomEngine(const void* memptr_) noexcept
         : SharemindRandomEngine {
-              ChaCha20RandomEngine_seed_size(),
-              ChaCha20RandomEngine_seed_hardware,
-              ChaCha20RandomEngine_seed,
               ChaCha20RandomEngine_fill_bytes,
               ChaCha20RandomEngine_free
           }
@@ -85,6 +76,10 @@ public: /* Methods: */
         #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
         VALGRIND_MAKE_MEM_DEFINED(this, sizeof(ChaCha20RandomEngine));
         #endif
+
+        assert (memptr_ != nullptr);
+        const auto memptr = static_cast<const uint8_t*>(memptr_);
+        chacha20_load_key(&memptr[0], &memptr[0] + CHACHA20_KEY_SIZE);
     }
 
     inline static ChaCha20RandomEngine& fromWrapper(SharemindRandomEngine& base) noexcept {
@@ -94,7 +89,6 @@ public: /* Methods: */
     inline void chacha20_load_key(const uint8_t* key, const uint8_t* nonce) noexcept;
 
     inline void chacha20_next_block() noexcept;
-
 
 public: /* Fields: */
 
@@ -167,42 +161,6 @@ inline void ChaCha20RandomEngine::chacha20_next_block() noexcept {
 }
 
 extern "C"
-SharemindRandomEngineSeedError ChaCha20RandomEngine_seed_hardware(SharemindRandomEngine* rng_)
-{
-    assert (rng_ != nullptr);
-    uint8_t chachakey[CHACHA20_KEY_SIZE + CHACHA20_NONCE_SIZE];
-
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(chachakey, sizeof(chachakey));
-    #endif
-
-    const auto keyOk = RAND_bytes(&chachakey[0], sizeof (chachakey));
-    if (keyOk != 1) {
-        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
-    }
-
-    auto& rng = ChaCha20RandomEngine::fromWrapper(*rng_);
-    rng.chacha20_load_key(&chachakey[0], &chachakey[0] + CHACHA20_KEY_SIZE);
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
-SharemindRandomEngineSeedError ChaCha20RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size)
-{
-    assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
-
-    if (size < rng_->seed_size) {
-        return SHAREMIND_RANDOM_SEED_INSUFFICIENT_ENTROPY;
-    }
-
-    const auto memptr = static_cast<const uint8_t*>(memptr_);
-    auto& rng = ChaCha20RandomEngine::fromWrapper(*rng_);
-    rng.chacha20_load_key(&memptr[0], &memptr[0] + CHACHA20_KEY_SIZE);
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
 void ChaCha20RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
 {
     assert (rng_ != nullptr);
@@ -241,8 +199,12 @@ void ChaCha20RandomEngine_free(SharemindRandomEngine* rng_) {
 
 namespace sharemind {
 
-SharemindRandomEngine* make_ChaCha20_random_engine() {
-    return new ChaCha20RandomEngine {};
+size_t ChaCha20_random_engine_seed_size() noexcept {
+    return CHACHA20_KEY_SIZE + CHACHA20_NONCE_SIZE;
+}
+
+SharemindRandomEngine* make_ChaCha20_random_engine(const void* memptr_) {
+    return new ChaCha20RandomEngine {memptr_};
 }
 
 }

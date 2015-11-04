@@ -24,7 +24,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <openssl/rand.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
@@ -40,13 +39,7 @@ namespace /* anonymouse */ {
 // Intentionally included inside anonymous namespace!
 #include "snow2tab.h"
 
-inline size_t SNOW2RandomEngine_seed_size() noexcept {
-    return sizeof(uint8_t)*32 + sizeof(uint32_t)*4;
-}
-
 extern "C" {
-SharemindRandomEngineSeedError SNOW2RandomEngine_seed_hardware(SharemindRandomEngine* rng_);
-SharemindRandomEngineSeedError SNOW2RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size);
 void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
 void SNOW2RandomEngine_free(SharemindRandomEngine* rng_);
 }
@@ -54,11 +47,8 @@ void SNOW2RandomEngine_free(SharemindRandomEngine* rng_);
 class SNOW2RandomEngine: public SharemindRandomEngine {
 public: /* Methods: */
 
-    inline SNOW2RandomEngine() noexcept
+    inline explicit SNOW2RandomEngine(const void* memptr_) noexcept
         : SharemindRandomEngine {
-              SNOW2RandomEngine_seed_size(),
-              SNOW2RandomEngine_seed_hardware,
-              SNOW2RandomEngine_seed,
               SNOW2RandomEngine_fill_bytes,
               SNOW2RandomEngine_free
           }
@@ -67,6 +57,14 @@ public: /* Methods: */
         #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
         VALGRIND_MAKE_MEM_DEFINED(this, sizeof(SNOW2RandomEngine));
         #endif
+
+        uint8_t snowkey[32];
+        uint32_t iv [4];
+
+        const auto memptr = static_cast<const uint8_t*>(memptr_);
+        memcpy(snowkey, memptr, sizeof (snowkey));
+        memcpy(iv, memptr + sizeof (snowkey), sizeof (iv));
+        snow_loadkey_fast_p(snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
     }
 
     inline static SNOW2RandomEngine& fromWrapper(SharemindRandomEngine& base) noexcept {
@@ -409,63 +407,6 @@ inline void SNOW2RandomEngine::snow_keystream_fast_p() noexcept
 }
 
 extern "C"
-SharemindRandomEngineSeedError SNOW2RandomEngine_seed_hardware(SharemindRandomEngine* rng_)
-{
-    assert (rng_ != nullptr);
-    uint32_t iv [4];
-
-    uint8_t snowkey[32];
-    uint8_t ivkey[sizeof(iv)];
-
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
-    VALGRIND_MAKE_MEM_DEFINED(ivkey, sizeof(iv));
-    #endif
-
-    const auto keyOk = RAND_bytes(&snowkey[0], sizeof (snowkey));
-    if (keyOk != 1) {
-        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
-    }
-
-    const auto ivOk = RAND_bytes(&ivkey[0], sizeof (iv));
-    if (ivOk != 1) {
-        return SHAREMIND_RANDOM_SEED_HARDWARE_ERROR;
-    }
-
-    memcpy (&iv[0], &ivkey[0], sizeof (iv));
-    auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
-    rng.snow_loadkey_fast_p (snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
-SharemindRandomEngineSeedError SNOW2RandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size)
-{
-    assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
-
-    uint8_t snowkey[32];
-    uint32_t iv [4];
-
-    if (size != rng_->seed_size) {
-        return SHAREMIND_RANDOM_SEED_INSUFFICIENT_ENTROPY;
-    }
-
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(snowkey, sizeof(snowkey));
-    VALGRIND_MAKE_MEM_DEFINED(iv, sizeof(iv));
-    #endif
-
-    const auto memptr = static_cast<const uint8_t*>(memptr_);
-    memcpy (snowkey, memptr, sizeof (snowkey));
-    memcpy (iv, memptr + sizeof (snowkey), sizeof (iv));
-
-    auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
-    rng.snow_loadkey_fast_p (snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
 void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
 {
     assert (rng_ != nullptr);
@@ -504,8 +445,13 @@ void SNOW2RandomEngine_free(SharemindRandomEngine* rng_) {
 
 namespace sharemind {
 
-SharemindRandomEngine* make_SNOW2_random_engine() {
-    return new SNOW2RandomEngine {};
+
+size_t SNOW2_random_engine_seed_size () noexcept {
+    return sizeof(uint8_t)*32 + sizeof(uint32_t)*4;
+}
+
+SharemindRandomEngine* make_SNOW2_random_engine(const void* memptr_) {
+    return new SNOW2RandomEngine {memptr_};
 }
 
 }

@@ -33,8 +33,6 @@ using namespace sharemind;
 namespace /* anonymous */ {
 
 extern "C" {
-SharemindRandomEngineSeedError BufferedRandomEngine_seed_hardware(SharemindRandomEngine* rng_);
-SharemindRandomEngineSeedError BufferedRandomEngine_seed(SharemindRandomEngine* rng_, const void * memptr_, size_t size);
 void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
 void BufferedRandomEngine_free(SharemindRandomEngine* rng_);
 }
@@ -46,9 +44,6 @@ public: /* Methods: */
     inline RandomBufferAgent(RandomEngine randomEngine,
                              const size_t bufferSize)
         : SharemindRandomEngine {
-              size_t(0),
-              BufferedRandomEngine_seed_hardware,
-              BufferedRandomEngine_seed,
               BufferedRandomEngine_fill_bytes,
               BufferedRandomEngine_free
           }
@@ -92,16 +87,6 @@ public: /* Fields: */
     Stoppable m_stoppable;
     std::thread m_thread;
 };
-
-extern "C"
-SharemindRandomEngineSeedError BufferedRandomEngine_seed_hardware(SharemindRandomEngine*) {
-    return SHAREMIND_RANDOM_SEED_NOT_SUPPORTED;
-}
-
-extern "C"
-SharemindRandomEngineSeedError BufferedRandomEngine_seed(SharemindRandomEngine*, const void*, size_t) {
-    return SHAREMIND_RANDOM_SEED_NOT_SUPPORTED;
-}
 
 extern "C"
 void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void* memptr, size_t size) {

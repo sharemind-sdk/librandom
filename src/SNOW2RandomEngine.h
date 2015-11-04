@@ -24,12 +24,15 @@
 
 namespace sharemind {
 
+size_t SNOW2_random_engine_seed_size() noexcept;
+
 /**
+ * \param[in] memptr_ pointer to the seed. Must contain sufficiently long seed.
  * \brief Construct a random engine based on SNOW2 stream cipher.
  * \returns A new instance of the random engine.
  * \throws std::bad_alloc
  */
-SharemindRandomEngine* make_SNOW2_random_engine();
+SharemindRandomEngine* make_SNOW2_random_engine(const void* memptr_);
 
 } /* namespace sharemind { */
 

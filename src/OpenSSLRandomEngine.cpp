@@ -31,16 +31,6 @@
 namespace /* anonymous */ {
 
 extern "C"
-SharemindRandomEngineSeedError OpenSSLRandomEngine_seed_hardware(SharemindRandomEngine*) {
-    return SHAREMIND_RANDOM_SEED_OK;
-}
-
-extern "C"
-SharemindRandomEngineSeedError OpenSSLRandomEngine_seed(SharemindRandomEngine*, const void *, size_t) {
-    return SHAREMIND_RANDOM_SEED_NOT_SUPPORTED;
-}
-
-extern "C"
 void OpenSSLRandomEngine_fill_bytes(SharemindRandomEngine*, void* memptr_, size_t size) {
     assert (size <= INT_MAX);
     const auto memptr = static_cast<unsigned char*>(memptr_);
@@ -55,9 +45,6 @@ extern "C"
 void OpenSSLRandomEngine_free(SharemindRandomEngine*) { }
 
 static SharemindRandomEngine OpenSSL_random_engine = SharemindRandomEngine {
-    size_t(0),
-    OpenSSLRandomEngine_seed_hardware,
-    OpenSSLRandomEngine_seed,
     OpenSSLRandomEngine_fill_bytes,
     OpenSSLRandomEngine_free
 };

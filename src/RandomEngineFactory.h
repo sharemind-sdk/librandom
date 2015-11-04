@@ -23,62 +23,103 @@
 #include "librandom.h"
 
 #include <cassert>
+#include <cstdlib>
+#include <stdexcept>
 
 namespace sharemind {
 
 /**
- * \brief Facade for the \a SharemindRandomEngineFactory structure.
+ * \brief Facade for the \a SharemindRandomEngineFactoryFacility
  */
-class RandomEngineFactory {
+
+inline
+SharemindRandomEngineConf getDefaultRandomEngineConfiguration(
+        SharemindRandomEngineFactoryFacility* factory) noexcept
+{
+    assert (factory != nullptr);
+    return factory->get_default_configuration(factory);
+}
+
+inline
+SharemindRandomEngine* makeRandomEngine(
+        SharemindRandomEngineFactoryFacility* factory,
+        SharemindRandomEngineConf conf)
+{
+    assert (factory != nullptr);
+    auto err = SHAREMIND_RANDOM_CTOR_OK;
+    const auto engine = factory->make_random_engine(factory, conf, &err);
+    if (err != SHAREMIND_RANDOM_CTOR_OK || engine == nullptr) {
+        // TODO: throw a proper exception!
+        throw std::runtime_error("makeRandomEngine failed");
+    }
+
+    return engine;
+}
+
+inline
+SharemindRandomEngine* makeRandomEngineWithSeed(
+        SharemindRandomEngineFactoryFacility* factory,
+        SharemindRandomEngineConf conf,
+        const void* memptr, size_t size)
+{
+    assert (factory != nullptr);
+    auto err = SHAREMIND_RANDOM_CTOR_OK;
+    const auto engine = factory->make_random_engine_with_seed(factory, conf, memptr, size, &err);
+    if (err != SHAREMIND_RANDOM_CTOR_OK || engine == nullptr) {
+        // TODO: throw a proper exception!
+        throw std::runtime_error("makeRandomEngineWithSeed failed");
+    }
+
+    return engine;
+}
+
+inline
+void freeRandomEngineFactoryFacility(SharemindRandomEngineFactoryFacility* factory)
+{
+    if (factory != nullptr)
+        factory->free(factory);
+}
+
+inline
+SharemindRandomEngine* makeRandomEngine(
+        SharemindRandomEngineFactoryFacility* factory)
+{
+    return makeRandomEngine(factory,
+                            getDefaultRandomEngineConfiguration(factory));
+}
+
+inline
+SharemindRandomEngine* makeRandomEngineWithSeed(
+        SharemindRandomEngineFactoryFacility* factory,
+        const void* memptr, size_t size)
+{
+    return makeRandomEngineWithSeed(factory,
+                                    getDefaultRandomEngineConfiguration(factory),
+                                    memptr, size);
+}
+
+/**
+ * \brief Thin wrapper around SharemindRandomEngineFactoryFacility indicating
+ * this object owns the factory facility. The instances is freed on destruction.
+ */
+class RandomEngineFactoryOwner {
 public: /* Methods: */
 
-    inline explicit RandomEngineFactory (SharemindRandomEngineFactoryFacility* factory)
-        : m_inner (factory)
+    explicit RandomEngineFactoryOwner(SharemindRandomEngineFactoryFacility* inner)
+        : m_inner (inner)
     { }
 
-    ~RandomEngineFactory() {
-        if (m_inner != nullptr) {
-            m_inner->free(m_inner);
-        }
-    }
+    RandomEngineFactoryOwner(const RandomEngineFactoryOwner&) = delete;
+    RandomEngineFactoryOwner& operator = (const RandomEngineFactoryOwner&) = delete;
+    RandomEngineFactoryOwner(const RandomEngineFactoryOwner&&) = delete;
+    RandomEngineFactoryOwner& operator = (const RandomEngineFactoryOwner&&) = delete;
 
-    RandomEngineFactory (const RandomEngineFactory&) = delete;
-    RandomEngineFactory& operator = (const RandomEngineFactory&) = delete;
-
-    RandomEngineFactory (RandomEngineFactory&& other)
-        : m_inner (other.m_inner)
-    { other.m_inner = nullptr; }
-
-    RandomEngineFactory& operator = (RandomEngineFactory&& other) {
-        if (this != &other) {
-            m_inner = other.m_inner;
-            other.m_inner = nullptr;
-        }
-
-        return *this;
-    }
-
-    inline SharemindRandomEngineConf getDefaultConfiguration() const noexcept {
-        assert (m_inner != nullptr);
-        return m_inner->get_default_configuration(m_inner);
-    }
-
-    inline SharemindRandomEngine* getRandomEngine() const noexcept {
-        assert (m_inner != nullptr);
-        return m_inner->get_random_engine(m_inner, getDefaultConfiguration());
-    }
-
-    inline SharemindRandomEngine* getRandomEngine(SharemindRandomEngineConf conf) const noexcept {
-        assert (m_inner != nullptr);
-        return m_inner->get_random_engine(m_inner, conf);
-    }
-
-    inline SharemindRandomEngineFactoryFacility* getSharemindRandomEngineFactoryFacility() noexcept {
+    inline SharemindRandomEngineFactoryFacility* get() const {
         return m_inner;
     }
 
-    inline const SharemindRandomEngineFactoryFacility* getSharemindRandomEngineFactoryFacility() const noexcept {
-        return m_inner;
+    ~RandomEngineFactoryOwner() {
+        freeRandomEngineFactoryFacility(m_inner);
     }
 
 private: /* Fields: */
