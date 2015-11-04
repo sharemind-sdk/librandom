@@ -28,7 +28,7 @@
 namespace sharemind {
 
 /**
- * \brief Facade for the \a SharemindRandomEngine structure.
+ * \brief Facade for \a SharemindRandomEngine.
  */
 class RandomEngine {
 public: /* Methods: */
@@ -80,9 +80,6 @@ public: /* Methods: */
         fillBytes(&value, sizeof(T));
         return value;
     }
-
-    inline SharemindRandomEngine* getSharemindRandomEngine() noexcept { return m_inner; }
-    inline const SharemindRandomEngine* getSharemindRandomEngine() const noexcept { return m_inner; }
 
 private: /* Fields: */
     SharemindRandomEngine* m_inner;

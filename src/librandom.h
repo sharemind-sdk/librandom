@@ -80,11 +80,11 @@ typedef struct SharemindRandomEngineConf_ {
 } SharemindRandomEngineConf;
 
 /**
- * \brief Indicates if the RNG was constructed properly.
+ * \brief Indicates if the RNG was constructed (and seeded) properly.
  */
 typedef enum SharemindRandomEngineCtorError_ {
 
-    /** Construction succeeded. */
+    /** Construction and seeding succeeded. */
     SHAREMIND_RANDOM_CTOR_OK = 0,
 
     /*
@@ -122,11 +122,13 @@ typedef enum SharemindRandomEngineCtorError_ {
  * \brief Facility for creating random number generation engines.
  */
 struct SharemindRandomEngineFactoryFacility_ {
+
     /**
      * \param[in] facility pointer to this factory facility.
      * \returns the default configuration (set in the configuration file).
      * \note only modify the configuration when you absolutely must use
-     * different random number generator than the one specified in the configuration.
+     * different random number generator than the one specified in the default
+     * configuration.
      */
     SharemindRandomEngineConf (* const get_default_configuration)(
             const SharemindRandomEngineFactoryFacility* facility);
@@ -134,7 +136,7 @@ struct SharemindRandomEngineFactoryFacility_ {
     /**
      * \param[in] facility pointer to this factory facility.
      * \param[in] conf the configuration that specified which random engine to use and how it's configured.
-     * \param[out] e error flag.
+     * \param[out] e error flag. Set only on error, not touched otherwise. May be NULL.
      * \returns a new random number generation engine.
      * \brief construct a new random number generator with a fresh seed.
      */
@@ -146,7 +148,7 @@ struct SharemindRandomEngineFactoryFacility_ {
      * \param[in] memptr pointer to the seed.
      * \param[in] size of the seed.
      * \brief construct a new random number generator with a given seed.
-     * \see make_random_engine for details.
+     * \see make_random_engine for details and other parameters.
      */
     SharemindRandomEngine* (* const make_random_engine_with_seed)(
             const SharemindRandomEngineFactoryFacility* facility,
