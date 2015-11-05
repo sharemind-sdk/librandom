@@ -47,7 +47,7 @@ private: /* Methods: */
 
     ~OpenSSLInit() {
         EVP_cleanup();
-        SSL_COMP_free_compression_methods();
+        // SSL_COMP_free_compression_methods();
         CRYPTO_cleanup_all_ex_data();
     }
 
