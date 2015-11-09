@@ -28,6 +28,38 @@
 
 namespace sharemind {
 
+/*
+ * Here we map SharemindRandomEngineCtorError to exceptions:
+ */
+
+class RandomCtorError : public std::runtime_error {
+public: /* Methods: */
+    explicit RandomCtorError (const char* wh)
+        : std::runtime_error {wh}
+    { }
+};
+
+inline void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError& e) {
+    switch (e) {
+    case SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED:
+        throw RandomCtorError {"Unsupported generator"};
+    case SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY:
+        throw std::bad_alloc {};
+    case SHAREMIND_RANDOM_CTOR_OTHER_ERROR:
+        throw RandomCtorError {"Failed to construct the generator"};
+    case SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT:
+        throw RandomCtorError {"Provided seed is too short"};
+    case SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR:
+        throw RandomCtorError {"Failed to self-generate seed"};
+    case SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED:
+        throw RandomCtorError {"Providing a fixed seed is not supported by this generator"};
+    case SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR:
+        throw std::runtime_error {"Failed to seed the generator"};
+    default:
+        break;
+    }
+}
+
 /**
  * \brief Facade for the \a SharemindRandomEngineFactoryFacility
  */
@@ -48,9 +80,9 @@ SharemindRandomEngine* makeRandomEngine(
     assert (factory != nullptr);
     auto err = SHAREMIND_RANDOM_CTOR_OK;
     const auto engine = factory->make_random_engine(factory, conf, &err);
-    if (err != SHAREMIND_RANDOM_CTOR_OK || engine == nullptr) {
-        // TODO: throw a proper exception!
-        throw std::runtime_error("makeRandomEngine failed");
+    handleSharemindRandomEngineCtorError(err);
+    if (engine == nullptr) {
+        throw std::bad_alloc {};
     }
 
     return engine;
@@ -65,9 +97,9 @@ SharemindRandomEngine* makeRandomEngineWithSeed(
     assert (factory != nullptr);
     auto err = SHAREMIND_RANDOM_CTOR_OK;
     const auto engine = factory->make_random_engine_with_seed(factory, conf, memptr, size, &err);
-    if (err != SHAREMIND_RANDOM_CTOR_OK || engine == nullptr) {
-        // TODO: throw a proper exception!
-        throw std::runtime_error("makeRandomEngineWithSeed failed");
+    handleSharemindRandomEngineCtorError(err);
+    if (engine == nullptr) {
+        throw std::bad_alloc {};
     }
 
     return engine;
