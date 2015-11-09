@@ -34,12 +34,13 @@ namespace sharemind {
 
 class RandomCtorError : public std::runtime_error {
 public: /* Methods: */
-    explicit RandomCtorError (const char* wh)
+    explicit RandomCtorError(const char* wh)
         : std::runtime_error {wh}
     { }
 };
 
-inline void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError& e) {
+inline
+void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError& e) {
     switch (e) {
     case SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED:
         throw RandomCtorError {"Unsupported generator"};
@@ -52,9 +53,10 @@ inline void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError&
     case SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR:
         throw RandomCtorError {"Failed to self-generate seed"};
     case SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED:
-        throw RandomCtorError {"Providing a fixed seed is not supported by this generator"};
+        throw RandomCtorError {
+            "Providing a fixed seed is not supported by this generator"};
     case SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR:
-        throw std::runtime_error {"Failed to seed the generator"};
+        throw RandomCtorError {"Failed to seed the generator"};
     default:
         break;
     }
@@ -96,7 +98,8 @@ SharemindRandomEngine* makeRandomEngineWithSeed(
 {
     assert (factory != nullptr);
     auto err = SHAREMIND_RANDOM_CTOR_OK;
-    const auto engine = factory->make_random_engine_with_seed(factory, conf, memptr, size, &err);
+    const auto engine = factory->make_random_engine_with_seed(
+                factory, conf, memptr, size, &err);
     handleSharemindRandomEngineCtorError(err);
     if (engine == nullptr) {
         throw std::bad_alloc {};
