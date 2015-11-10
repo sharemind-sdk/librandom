@@ -24,7 +24,7 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <stdexcept>
+#include <sharemind/Exception.h>
 
 namespace sharemind {
 
@@ -32,31 +32,37 @@ namespace sharemind {
  * Here we map SharemindRandomEngineCtorError to exceptions:
  */
 
-class RandomCtorError : public std::runtime_error {
-public: /* Methods: */
-    explicit RandomCtorError(const char* wh)
-        : std::runtime_error {wh}
-    { }
-};
+SHAREMIND_DEFINE_EXCEPTION(std::exception, RandomCtorError);
+SHAREMIND_DEFINE_EXCEPTION(RandomCtorError, RandomCtorSeedError);
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorError, RandomCtorGeneratorNotSupported,
+                                     "Unsupported generator");
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorError, RandomCtorOtherError,
+                                     "Failed to construct the generator");
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedTooShort,
+                                     "Provided seed is too short");
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedSelfGenerateError,
+                                     "Failed to self-generate a seed");
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedNotSupported,
+                                     "Providing a fixed seed is not supported by this generator");
+
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedOtherError,
+                                     "Failed to seed the generator");
 
 inline
 void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError& e) {
     switch (e) {
-    case SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED:
-        throw RandomCtorError {"Unsupported generator"};
-    case SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY:
-        throw std::bad_alloc {};
-    case SHAREMIND_RANDOM_CTOR_OTHER_ERROR:
-        throw RandomCtorError {"Failed to construct the generator"};
-    case SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT:
-        throw RandomCtorError {"Provided seed is too short"};
-    case SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR:
-        throw RandomCtorError {"Failed to self-generate seed"};
-    case SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED:
-        throw RandomCtorError {
-            "Providing a fixed seed is not supported by this generator"};
-    case SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR:
-        throw RandomCtorError {"Failed to seed the generator"};
+    case SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED: throw RandomCtorGeneratorNotSupported {};
+    case SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY: throw std::bad_alloc {};
+    case SHAREMIND_RANDOM_CTOR_OTHER_ERROR: throw RandomCtorOtherError {};
+    case SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT: throw RandomCtorSeedTooShort {};
+    case SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR: throw RandomCtorSeedSelfGenerateError {};
+    case SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED: throw RandomCtorSeedNotSupported { };
+    case SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR: throw RandomCtorSeedOtherError {};
     default:
         break;
     }
