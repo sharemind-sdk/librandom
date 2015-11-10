@@ -69,7 +69,7 @@ public: /* Methods: */
         assert (m_inner != nullptr);
         assert (begin <= end);
         if (begin < end) {
-            fillBytes(begin, end - begin);
+            fillBytes(begin, sizeof(T)*(end - begin));
         }
     }
 
