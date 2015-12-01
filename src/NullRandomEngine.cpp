@@ -27,7 +27,7 @@ namespace /* anonymous */ {
 
 extern "C"
 void NullRandomEngine_fill_bytes(SharemindRandomEngine*, void* memptr, size_t size) {
-    bzero(memptr, size);
+    memset(memptr, 0, size);
 }
 
 extern "C"
