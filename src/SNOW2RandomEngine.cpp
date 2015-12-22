@@ -34,7 +34,7 @@
 
 using namespace sharemind;
 
-namespace /* anonymouse */ {
+namespace /* anonymous */ {
 
 // Intentionally included inside anonymous namespace!
 #include "snow2tab.h"

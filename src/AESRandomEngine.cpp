@@ -48,7 +48,7 @@
 
 using namespace sharemind;
 
-namespace /* anonymouse */ {
+namespace /* anonymous */ {
 
 inline const EVP_CIPHER* aes_cipher() noexcept {
     return EVP_aes_128_ctr();

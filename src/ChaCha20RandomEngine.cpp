@@ -43,7 +43,7 @@
 
 using namespace sharemind;
 
-namespace /* anonymouse */ {
+namespace /* anonymous */ {
 
 inline uint32_t rotl32 (uint32_t v, uint8_t n) noexcept {
     return (v << n) | (v >> (sizeof(v) * 8u - n));
