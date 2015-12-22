@@ -22,7 +22,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <openssl/rand.h>
 #include <openssl/evp.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
