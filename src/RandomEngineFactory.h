@@ -89,9 +89,8 @@ SharemindRandomEngine* makeRandomEngine(
     auto err = SHAREMIND_RANDOM_CTOR_OK;
     const auto engine = factory->make_random_engine(factory, conf, &err);
     handleSharemindRandomEngineCtorError(err);
-    if (engine == nullptr) {
+    if (!engine)
         throw std::bad_alloc {};
-    }
 
     return engine;
 }
@@ -107,9 +106,8 @@ SharemindRandomEngine* makeRandomEngineWithSeed(
     const auto engine = factory->make_random_engine_with_seed(
                 factory, conf, memptr, size, &err);
     handleSharemindRandomEngineCtorError(err);
-    if (engine == nullptr) {
+    if (!engine)
         throw std::bad_alloc {};
-    }
 
     return engine;
 }
@@ -117,7 +115,7 @@ SharemindRandomEngine* makeRandomEngineWithSeed(
 inline
 void freeRandomEngineFactoryFacility(SharemindRandomEngineFactoryFacility* factory)
 {
-    if (factory != nullptr)
+    if (factory)
         factory->free(factory);
 }
 

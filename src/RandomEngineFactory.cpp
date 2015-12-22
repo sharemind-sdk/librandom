@@ -85,7 +85,7 @@ public: /* Fields: */
 inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
                          SharemindRandomEngineCtorError e)
 {
-    if (ptr != nullptr)
+    if (!ptr)
         *ptr = e;
 }
 
@@ -199,7 +199,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
             break;
         case SHAREMIND_RANDOM_AES:
             coreEngine = make_AES_random_engine(memptr, e);
-            if (coreEngine == nullptr)
+            if (!coreEngine)
                 return nullptr;
             break;
         case SHAREMIND_RANDOM_NULL:
@@ -220,7 +220,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
         return nullptr;
     }
 
-    if (coreEngine == nullptr) {
+    if (!coreEngine) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
         return nullptr;
     }
@@ -241,9 +241,8 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
 
 extern "C"
 void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility) {
-    if (facility != nullptr) {
+    if (facility)
         delete &RandomEngineFactoryImpl::fromWrapper(*facility);
-    }
 }
 
 

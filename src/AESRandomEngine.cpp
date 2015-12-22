@@ -58,7 +58,7 @@ inline const EVP_CIPHER* aes_cipher() noexcept {
 inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
                          SharemindRandomEngineCtorError e)
 {
-    if (ptr != nullptr)
+    if (ptr)
         *ptr = e;
 }
 
@@ -241,7 +241,7 @@ void AESRandomEngine_free(SharemindRandomEngine* rng_) {
 namespace sharemind {
 
 size_t AES_random_engine_seed_size() noexcept {
-    if (aes_cipher() == nullptr)
+    if (!aes_cipher())
         return 0;
 
     return EVP_CIPHER_key_length(aes_cipher()) + EVP_CIPHER_iv_length(aes_cipher());
@@ -250,7 +250,7 @@ size_t AES_random_engine_seed_size() noexcept {
 SharemindRandomEngine* make_AES_random_engine(const void* memptr_, SharemindRandomEngineCtorError* e) {
 
     // Make sure that the cipher we use is defined.
-    if (aes_cipher() == nullptr) {
+    if (!aes_cipher()) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED);
         return nullptr;
     }
