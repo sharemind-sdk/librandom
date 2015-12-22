@@ -29,6 +29,7 @@
 #include "SNOW2RandomEngine.h"
 
 #include <exception>
+#include <mutex>
 #include <new>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
@@ -46,12 +47,12 @@ SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
         const SharemindRandomEngineFactoryFacility* facility);
 
 SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
-        const SharemindRandomEngineFactoryFacility* facility,
+        SharemindRandomEngineFactoryFacility* facility,
         SharemindRandomEngineConf conf,
         SharemindRandomEngineCtorError* e);
 
 SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
-        const SharemindRandomEngineFactoryFacility* facility,
+        SharemindRandomEngineFactoryFacility* facility,
         SharemindRandomEngineConf conf,
         const void* memptr,
         size_t size,
@@ -72,7 +73,28 @@ public: /* Methods: */
             RandomEngineFactoryImpl_free
         }
         , m_conf (conf)
-    { }
+        , m_seedRng{
+            []{
+                size_t const seedSize = SNOW2_random_engine_seed_size();
+                assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
+                unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
+                cryptographicRandom(tempBuffer, seedSize);
+                return make_SNOW2_random_engine(tempBuffer);
+            }()}
+    {}
+
+    inline ~RandomEngineFactoryImpl() noexcept {
+        m_seedRng->free(m_seedRng);
+    }
+
+    void generateSeed(void * const buf, size_t const bufSize) {
+        std::lock_guard<std::mutex> const guard{m_seedRngMutex};
+        m_seedRng->fill_bytes(m_seedRng, buf, bufSize);
+    }
+
+    inline static RandomEngineFactoryImpl & fromWrapper(
+            SharemindRandomEngineFactoryFacility & base) noexcept
+    { return static_cast<RandomEngineFactoryImpl &>(base); }
 
     inline static const RandomEngineFactoryImpl& fromWrapper(const SharemindRandomEngineFactoryFacility& base) noexcept {
         return static_cast<const RandomEngineFactoryImpl&>(base);
@@ -80,6 +102,8 @@ public: /* Methods: */
 
 public: /* Fields: */
     const SharemindRandomEngineConf m_conf;
+    std::mutex m_seedRngMutex;
+    SharemindRandomEngine * m_seedRng;
 };
 
 inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
@@ -139,7 +163,7 @@ SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
 
 extern "C"
 SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
-        const SharemindRandomEngineFactoryFacility* facility,
+        SharemindRandomEngineFactoryFacility* facility,
         SharemindRandomEngineConf conf,
         SharemindRandomEngineCtorError* e)
 {
@@ -157,7 +181,8 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
     VALGRIND_MAKE_MEM_DEFINED(tempBuffer, sizeof(tempBuffer));
     #endif
 
-    cryptographicRandom(tempBuffer, seedSize);
+    RandomEngineFactoryImpl::fromWrapper(*facility).generateSeed(tempBuffer,
+                                                                 seedSize);
 
     return RandomEngineFactoryImpl_make_random_engine_with_seed(
                 facility, conf, tempBuffer, seedSize, e);
@@ -165,7 +190,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
 
 extern "C"
 SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
-        const SharemindRandomEngineFactoryFacility* facility,
+        SharemindRandomEngineFactoryFacility* facility,
         SharemindRandomEngineConf conf,
         const void* memptr,
         size_t size,

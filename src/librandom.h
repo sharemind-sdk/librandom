@@ -151,7 +151,7 @@ struct SharemindRandomEngineFactoryFacility_ {
      * \brief construct a new random number generator with a fresh seed.
      */
     SharemindRandomEngine* (* const make_random_engine)(
-            const SharemindRandomEngineFactoryFacility* facility,
+            SharemindRandomEngineFactoryFacility* facility,
             SharemindRandomEngineConf conf,
             SharemindRandomEngineCtorError* e);
     /**
@@ -161,7 +161,7 @@ struct SharemindRandomEngineFactoryFacility_ {
      * \see make_random_engine for details and other parameters.
      */
     SharemindRandomEngine* (* const make_random_engine_with_seed)(
-            const SharemindRandomEngineFactoryFacility* facility,
+            SharemindRandomEngineFactoryFacility* facility,
             SharemindRandomEngineConf conf,
             const void* memptr,
             size_t size,
