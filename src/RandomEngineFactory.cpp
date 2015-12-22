@@ -21,6 +21,7 @@
 
 #include "AESRandomEngine.h"
 #include "ChaCha20RandomEngine.h"
+#include "CryptographicRandom.h"
 #include "NullRandomEngine.h"
 #include "OpenSSLRandomEngine.h"
 #include "RandomBufferAgent.h"
@@ -29,7 +30,6 @@
 
 #include <exception>
 #include <new>
-#include <openssl/rand.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
@@ -157,11 +157,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
     VALGRIND_MAKE_MEM_DEFINED(tempBuffer, sizeof(tempBuffer));
     #endif
 
-    const auto result = RAND_bytes(tempBuffer, seedSize);
-    if (result != 1) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR);
-        return nullptr;
-    }
+    cryptographicRandom(tempBuffer, seedSize);
 
     return RandomEngineFactoryImpl_make_random_engine_with_seed(
                 facility, conf, tempBuffer, seedSize, e);
