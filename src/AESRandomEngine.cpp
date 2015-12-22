@@ -24,6 +24,7 @@
 #include <cstring>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
+#include <sharemind/PotentiallyVoidTypeInfo.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
@@ -202,20 +203,19 @@ void AESRandomEngine::aes_next_block() noexcept {
 }
 
 extern "C"
-void AESRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
+void AESRandomEngine_fill_bytes(SharemindRandomEngine * rng_, void * memptr, size_t size)
 {
     assert(rng_);
     assert(memptr);
 
     auto& rng = AESRandomEngine::fromWrapper(*rng_);
-    uint8_t* memptr = static_cast<uint8_t*>(memptr_);
     size_t unconsumedSize = AES_INTERNAL_BUFFER - rng.block_consumed;
     size_t offsetStart = 0;
     size_t offsetEnd = unconsumedSize;
 
     // Consume full blocks (first might already be partially or entirely consumed).
     while (offsetEnd <= size) {
-        memcpy(memptr + offsetStart, &rng.block[rng.block_consumed], unconsumedSize);
+        memcpy(ptrAdd(memptr, offsetStart), &rng.block[rng.block_consumed], unconsumedSize);
         rng.aes_next_block();
         rng.block_consumed = 0;
         unconsumedSize = AES_INTERNAL_BUFFER;
@@ -224,7 +224,7 @@ void AESRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, siz
     }
 
     const size_t remainingSize = size - offsetStart;
-    memcpy(memptr + offsetStart, &rng.block[rng.block_consumed], remainingSize);
+    memcpy(ptrAdd(memptr, offsetStart), &rng.block[rng.block_consumed], remainingSize);
     rng.block_consumed += remainingSize;
     assert(rng.block_consumed <= AES_INTERNAL_BUFFER); // the supply may deplete
 }
