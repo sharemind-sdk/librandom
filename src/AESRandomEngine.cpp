@@ -141,7 +141,7 @@ bool AESRandomEngine::aes_seed(unsigned char* key,
 bool AESRandomEngine::aes_reseed_inner(SharemindRandomEngineCtorError* e) noexcept {
     const auto num_blocks = (AES_random_engine_seed_size() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
     const auto plaintext_size = num_blocks * AES_BLOCK_SIZE;
-    assert (plaintext_size < AES_STATIC_KEY_SIZE);
+    assert(plaintext_size < AES_STATIC_KEY_SIZE);
     uint8_t plaintext[AES_STATIC_KEY_SIZE];
     uint8_t seed[AES_STATIC_KEY_SIZE];
 
@@ -153,15 +153,17 @@ bool AESRandomEngine::aes_reseed_inner(SharemindRandomEngineCtorError* e) noexce
 
     int bytes_written = 0;
     if (! EVP_EncryptUpdate(&m_ctx_outer, &seed[0], &bytes_written, plaintext, plaintext_size)) {
-        assert (false && "aes_reseed_inner: Encryption failed.");
+        assert(false && "aes_reseed_inner: Encryption failed.");
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR);
         return false;
     }
 
-    assert (bytes_written > 0 && static_cast<decltype(plaintext_size)>(bytes_written) == plaintext_size);
+    assert(bytes_written > 0
+           && static_cast<decltype(plaintext_size)>(bytes_written)
+              == plaintext_size);
 
     if (! EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytes_written, &bytes_written)) {
-        assert (false && "aes_reseed_inner: EncryptFinal failed.");
+        assert(false && "aes_reseed_inner: EncryptFinal failed.");
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR);
         return false;
     }
@@ -186,13 +188,13 @@ void AESRandomEngine::aes_next_block() noexcept {
 
     int bytes_written = 0;
     if (! EVP_EncryptUpdate(&m_ctx_inner, &block[0], &bytes_written, plaintext, AES_INTERNAL_BUFFER)) {
-        assert (false && "Encryption failed.");
+        assert(false && "Encryption failed.");
         return;
     }
 
-    assert (bytes_written == AES_INTERNAL_BUFFER);
+    assert(bytes_written == AES_INTERNAL_BUFFER);
     if (! EVP_EncryptFinal_ex(&m_ctx_inner, &block[0] + bytes_written, &bytes_written)) {
-        assert (false && "EncryptFinal failed.");
+        assert(false && "EncryptFinal failed.");
         return;
     }
 
@@ -202,8 +204,8 @@ void AESRandomEngine::aes_next_block() noexcept {
 extern "C"
 void AESRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
 {
-    assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
+    assert(rng_);
+    assert(memptr);
 
     auto& rng = AESRandomEngine::fromWrapper(*rng_);
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
@@ -224,12 +226,12 @@ void AESRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, siz
     const size_t remainingSize = size - offsetStart;
     memcpy(memptr + offsetStart, &rng.block[rng.block_consumed], remainingSize);
     rng.block_consumed += remainingSize;
-    assert (rng.block_consumed <= AES_INTERNAL_BUFFER); // the supply may deplete
+    assert(rng.block_consumed <= AES_INTERNAL_BUFFER); // the supply may deplete
 }
 
 extern "C"
 void AESRandomEngine_free(SharemindRandomEngine* rng_) {
-    assert (rng_ != nullptr);
+    assert(rng_);
     delete &AESRandomEngine::fromWrapper(*rng_);
 }
 

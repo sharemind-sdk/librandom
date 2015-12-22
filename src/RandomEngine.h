@@ -60,14 +60,14 @@ public: /* Methods: */
     }
 
     inline void fillBytes (void* memptr, size_t numBytes) noexcept {
-        assert (m_inner != nullptr);
+        assert(m_inner);
         m_inner->fill_bytes (m_inner, memptr, numBytes);
     }
 
     template <typename T>
     inline void fillBlock(T* begin, T* end) noexcept {
-        assert (m_inner != nullptr);
-        assert (begin <= end);
+        assert(m_inner);
+        assert(begin <= end);
         if (begin < end) {
             fillBytes(begin, sizeof(T)*(end - begin));
         }
@@ -75,7 +75,7 @@ public: /* Methods: */
 
     template <typename T>
     inline T randomValue() noexcept(noexcept(T(T()))) {
-        assert (m_inner != nullptr);
+        assert(m_inner);
         T value;
         fillBytes(&value, sizeof(T));
         return value;

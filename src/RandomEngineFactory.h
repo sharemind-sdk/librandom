@@ -76,7 +76,7 @@ inline
 SharemindRandomEngineConf getDefaultRandomEngineConfiguration(
         SharemindRandomEngineFactoryFacility* factory) noexcept
 {
-    assert (factory != nullptr);
+    assert(factory);
     return factory->get_default_configuration(factory);
 }
 
@@ -85,7 +85,7 @@ SharemindRandomEngine* makeRandomEngine(
         SharemindRandomEngineFactoryFacility* factory,
         SharemindRandomEngineConf conf)
 {
-    assert (factory != nullptr);
+    assert(factory);
     auto err = SHAREMIND_RANDOM_CTOR_OK;
     const auto engine = factory->make_random_engine(factory, conf, &err);
     handleSharemindRandomEngineCtorError(err);
@@ -102,7 +102,7 @@ SharemindRandomEngine* makeRandomEngineWithSeed(
         SharemindRandomEngineConf conf,
         const void* memptr, size_t size)
 {
-    assert (factory != nullptr);
+    assert(factory);
     auto err = SHAREMIND_RANDOM_CTOR_OK;
     const auto engine = factory->make_random_engine_with_seed(
                 factory, conf, memptr, size, &err);

@@ -108,7 +108,7 @@ SharemindRandomEngine* makeThreadBufferedEngine(SharemindRandomEngine* coreEngin
                                                 size_t bufferSize,
                                                 SharemindRandomEngineCtorError* e) noexcept
 {
-    assert (coreEngine != nullptr);
+    assert(coreEngine);
 
     try {
         return make_thread_buffered_random_engine(RandomEngine {coreEngine}, bufferSize);
@@ -133,7 +133,7 @@ extern "C"
 SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
         const SharemindRandomEngineFactoryFacility* facility)
 {
-    assert (facility != nullptr);
+    assert(facility);
     return RandomEngineFactoryImpl::fromWrapper(*facility).m_conf;
 }
 
@@ -143,7 +143,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
         SharemindRandomEngineConf conf,
         SharemindRandomEngineCtorError* e)
 {
-    assert (facility != nullptr);
+    assert(facility);
 
     const auto seedSize = getSeedSize(conf.core_engine);
     if (seedSize > SEED_TEMP_BUFFER_SIZE) {
@@ -175,7 +175,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
         size_t size,
         SharemindRandomEngineCtorError* e)
 {
-    assert (facility != nullptr);
+    assert(facility);
 
     // Verify seed:
 

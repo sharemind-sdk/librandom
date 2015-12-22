@@ -76,7 +76,7 @@ public: /* Methods: */
         VALGRIND_MAKE_MEM_DEFINED(this, sizeof(ChaCha20RandomEngine));
         #endif
 
-        assert (memptr_ != nullptr);
+        assert(memptr_);
         const auto memptr = static_cast<const uint8_t*>(memptr_);
         chacha20_load_key(&memptr[0], &memptr[0] + CHACHA20_KEY_SIZE);
     }
@@ -162,8 +162,8 @@ inline void ChaCha20RandomEngine::chacha20_next_block() noexcept {
 extern "C"
 void ChaCha20RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
 {
-    assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
+    assert(rng_);
+    assert(memptr_);
 
     auto& rng = ChaCha20RandomEngine::fromWrapper(*rng_);
     uint8_t* memptr = static_cast<uint8_t*>(memptr_);
@@ -184,12 +184,12 @@ void ChaCha20RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_
     const size_t remainingSize = size - offsetStart;
     memcpy(memptr + offsetStart, &rng.m_block[rng.m_block_consumed], remainingSize);
     rng.m_block_consumed += remainingSize;
-    assert (rng.m_block_consumed <= CHACHA20_BLOCK_SIZE); // the supply may deplete
+    assert(rng.m_block_consumed <= CHACHA20_BLOCK_SIZE); // the supply may deplete
 }
 
 extern "C"
 void ChaCha20RandomEngine_free(SharemindRandomEngine* rng_) {
-    assert (rng_ != nullptr);
+    assert(rng_);
     delete &ChaCha20RandomEngine::fromWrapper(*rng_);
 }
 

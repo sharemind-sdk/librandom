@@ -90,8 +90,8 @@ public: /* Fields: */
 
 extern "C"
 void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void* memptr, size_t size) {
-    assert (rng_ != nullptr);
-    assert (memptr != nullptr);
+    assert(rng_);
+    assert(memptr);
 
     auto& rng = RandomBufferAgent::fromWrapper(*rng_);
     for (;;) {
@@ -107,7 +107,7 @@ void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void* memptr, 
 
 extern "C"
 void BufferedRandomEngine_free(SharemindRandomEngine* rng_) {
-    assert (rng_ != nullptr);
+    assert(rng_);
     delete &RandomBufferAgent::fromWrapper(*rng_);
 }
 

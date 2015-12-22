@@ -411,8 +411,8 @@ void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine * rng_,
                                   void * memptr,
                                   size_t size)
 {
-    assert (rng_ != nullptr);
-    assert (memptr != nullptr);
+    assert(rng_);
+    assert(memptr);
 
     auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
 
@@ -433,12 +433,12 @@ void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine * rng_,
     const size_t remainingSize = size - offsetStart;
     memcpy(ptrAdd(memptr, offsetStart), &rng.un_byte_keystream[rng.keystream_ready], remainingSize);
     rng.keystream_ready += remainingSize;
-    assert (rng.keystream_ready <= sizeof(rng.keystream)); // the supply may deplete
+    assert(rng.keystream_ready <= sizeof(rng.keystream)); // the supply may deplete
 }
 
 extern "C"
 void SNOW2RandomEngine_free(SharemindRandomEngine* rng_) {
-    assert (rng_ != nullptr);
+    assert(rng_);
     delete &SNOW2RandomEngine::fromWrapper(*rng_);
 }
 

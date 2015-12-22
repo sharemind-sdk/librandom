@@ -31,13 +31,15 @@
 namespace /* anonymous */ {
 
 extern "C"
-void OpenSSLRandomEngine_fill_bytes(SharemindRandomEngine*, void* memptr_, size_t size) {
-    assert (size <= INT_MAX);
-    const auto memptr = static_cast<unsigned char*>(memptr_);
+void OpenSSLRandomEngine_fill_bytes(SharemindRandomEngine *,
+                                    void * memptr,
+                                    size_t size)
+{
+    assert(size <= INT_MAX);
     #ifndef NDEBUG
     auto const r =
     #endif
-        RAND_bytes(memptr, size);
+        RAND_bytes(static_cast<unsigned char *>(memptr), size);
     assert(r == 1);
 }
 
