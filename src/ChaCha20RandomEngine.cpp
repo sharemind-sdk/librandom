@@ -33,7 +33,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <openssl/rand.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
