@@ -62,6 +62,37 @@ void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility
 
 }
 
+class SeedRng {
+
+public: /* Methods: */
+
+    inline SeedRng()
+        : m_inner{
+            []{
+                size_t const seedSize = SNOW2_random_engine_seed_size();
+                assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
+                unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
+                cryptographicRandom(tempBuffer, seedSize);
+                return make_SNOW2_random_engine(tempBuffer);
+            }()}
+    {}
+
+    inline ~SeedRng() noexcept { m_inner->free(m_inner); }
+
+    void generateSeed(void * const buf, size_t const bufSize) {
+        std::lock_guard<std::mutex> const guard{m_mutex};
+        m_inner->fill_bytes(m_inner, buf, bufSize);
+    }
+
+private: /* Fields: */
+
+    std::mutex m_mutex;
+    SharemindRandomEngine * m_inner;
+
+};
+
+static SeedRng seedRng;
+
 class RandomEngineFactoryImpl: public SharemindRandomEngineFactoryFacility {
 public: /* Methods: */
 
@@ -73,24 +104,7 @@ public: /* Methods: */
             RandomEngineFactoryImpl_free
         }
         , m_conf (conf)
-        , m_seedRng{
-            []{
-                size_t const seedSize = SNOW2_random_engine_seed_size();
-                assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
-                unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
-                cryptographicRandom(tempBuffer, seedSize);
-                return make_SNOW2_random_engine(tempBuffer);
-            }()}
     {}
-
-    inline ~RandomEngineFactoryImpl() noexcept {
-        m_seedRng->free(m_seedRng);
-    }
-
-    void generateSeed(void * const buf, size_t const bufSize) {
-        std::lock_guard<std::mutex> const guard{m_seedRngMutex};
-        m_seedRng->fill_bytes(m_seedRng, buf, bufSize);
-    }
 
     inline static RandomEngineFactoryImpl & fromWrapper(
             SharemindRandomEngineFactoryFacility & base) noexcept
@@ -102,8 +116,6 @@ public: /* Methods: */
 
 public: /* Fields: */
     const SharemindRandomEngineConf m_conf;
-    std::mutex m_seedRngMutex;
-    SharemindRandomEngine * m_seedRng;
 };
 
 inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
@@ -181,8 +193,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
     VALGRIND_MAKE_MEM_DEFINED(tempBuffer, sizeof(tempBuffer));
     #endif
 
-    RandomEngineFactoryImpl::fromWrapper(*facility).generateSeed(tempBuffer,
-                                                                 seedSize);
+    seedRng.generateSeed(tempBuffer, seedSize);
 
     return RandomEngineFactoryImpl_make_random_engine_with_seed(
                 facility, conf, tempBuffer, seedSize, e);
