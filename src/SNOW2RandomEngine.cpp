@@ -24,6 +24,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <sharemind/PotentiallyVoidTypeInfo.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
 #endif
@@ -47,7 +48,7 @@ void SNOW2RandomEngine_free(SharemindRandomEngine* rng_);
 class SNOW2RandomEngine: public SharemindRandomEngine {
 public: /* Methods: */
 
-    inline explicit SNOW2RandomEngine(const void* memptr_) noexcept
+    inline explicit SNOW2RandomEngine(const void * const memptr) noexcept
         : SharemindRandomEngine {
               SNOW2RandomEngine_fill_bytes,
               SNOW2RandomEngine_free
@@ -61,9 +62,8 @@ public: /* Methods: */
         uint8_t snowkey[32];
         uint32_t iv [4];
 
-        const auto memptr = static_cast<const uint8_t*>(memptr_);
         memcpy(snowkey, memptr, sizeof (snowkey));
-        memcpy(iv, memptr + sizeof (snowkey), sizeof (iv));
+        memcpy(iv, ptrAdd(memptr, sizeof(snowkey)), sizeof(iv));
         snow_loadkey_fast_p(snowkey, 256, iv[0], iv[1], iv[2], iv[3]);
     }
 
@@ -407,21 +407,22 @@ inline void SNOW2RandomEngine::snow_keystream_fast_p() noexcept
 }
 
 extern "C"
-void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size)
+void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine * rng_,
+                                  void * memptr,
+                                  size_t size)
 {
     assert (rng_ != nullptr);
-    assert (memptr_ != nullptr);
+    assert (memptr != nullptr);
 
     auto& rng = SNOW2RandomEngine::fromWrapper(*rng_);
 
-    uint8_t* memptr = static_cast<uint8_t*>(memptr_);
     size_t currentKeystreamSize = sizeof (rng.keystream) - rng.keystream_ready;
     size_t offsetStart = 0;
     size_t offsetEnd = currentKeystreamSize;
 
     // Fill big chunks
     while (offsetEnd <= size) {
-        memcpy (memptr + offsetStart, &rng.un_byte_keystream[rng.keystream_ready], currentKeystreamSize);
+        memcpy(ptrAdd(memptr, offsetStart), &rng.un_byte_keystream[rng.keystream_ready], currentKeystreamSize);
         rng.snow_keystream_fast_p();
         rng.keystream_ready = 0;
         currentKeystreamSize = sizeof (rng.keystream);
@@ -430,7 +431,7 @@ void SNOW2RandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, s
     }
 
     const size_t remainingSize = size - offsetStart;
-    memcpy (memptr + offsetStart, &rng.un_byte_keystream[rng.keystream_ready], remainingSize);
+    memcpy(ptrAdd(memptr, offsetStart), &rng.un_byte_keystream[rng.keystream_ready], remainingSize);
     rng.keystream_ready += remainingSize;
     assert (rng.keystream_ready <= sizeof(rng.keystream)); // the supply may deplete
 }
