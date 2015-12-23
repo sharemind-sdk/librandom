@@ -44,12 +44,55 @@ struct Inner {
 
     inline Inner(const void * const memptr) noexcept;
 
+    /*
+     * Function:  snow_loadkey_fast
+     *
+     * Synopsis:
+     *   Loads the key material and performs the initial mixing.
+     *
+     * Returns: void
+     *
+     * Assumptions:
+     *   keysize is either 128 or 256.
+     *   key is of proper length, for keysize=128, key is of lenght 16 bytes
+     *      and for keysize=256, key is of length 32 bytes.
+     *   key is given in big endian format,
+     *   For 128 bit key:
+     *        key[0]-> msb of k_3
+     *         ...
+     *        key[3]-> lsb of k_3
+     *         ...
+     *        key[12]-> msb of k_0
+     *         ...
+     *        key[15]-> lsb of k_0
+     *
+     *   For 256 bit key:
+     *        key[0]-> msb of k_7
+     *          ...
+     *        key[3]-> lsb of k_7
+     *          ...
+     *        key[28]-> msb of k_0
+     *          ...
+     *        key[31]-> lsb of k_0
+     *
+     * Authors:
+     * Patrik Ekdahl & Thomas Johansson
+     * Dept. of Information Technology
+     * P.O. Box 118
+     * SE-221 00 Lund, Sweden,
+     * email: {patrik,thomas}@it.lth.se
+     */
+    template <uint32_t KEYSIZE>
     inline void snow_loadkey_fast_p(uint8_t * key,
-                                    uint32_t keysize,
                                     uint32_t IV3,
                                     uint32_t IV2,
                                     uint32_t IV1,
                                     uint32_t IV0) noexcept;
+
+    inline void snow_loadkey_fast_p_common(uint32_t IV3,
+                                           uint32_t IV2,
+                                           uint32_t IV1,
+                                           uint32_t IV0) noexcept;
 
     inline void snow_keystream_fast_p() noexcept;
 
@@ -70,6 +113,71 @@ struct Inner {
 // Intentionally included inside anonymous namespace!
 #include "snow2tab.h"
 
+template <>
+inline void Inner::snow_loadkey_fast_p<128u>(uint8_t * key,
+                                             uint32_t IV3,
+                                             uint32_t IV2,
+                                             uint32_t IV1,
+                                             uint32_t IV0) noexcept
+{
+    s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
+            (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
+    s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
+            (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
+    s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
+            (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
+    s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
+            (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
+    s11 =~s15; /* bitwise inverse */
+    s10 =~s14;
+    s9  =~s13;
+    s8  =~s12;
+    s7  = s15; /* just copy */
+    s6  = s14;
+    s5  = s13;
+    s4  = s12;
+    s3  =~s15; /* bitwise inverse */
+    s2  =~s14;
+    s1  =~s13;
+    s0  =~s12;
+    return snow_loadkey_fast_p_common(IV3, IV2, IV1, IV0);
+}
+
+
+template <>
+inline void Inner::snow_loadkey_fast_p<256u>(uint8_t * key,
+                                             uint32_t IV3,
+                                             uint32_t IV2,
+                                             uint32_t IV1,
+                                             uint32_t IV0) noexcept
+{
+    s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
+            (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
+    s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
+            (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
+    s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
+            (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
+    s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
+            (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
+    s11=(((uint32_t)*(key+16))<<24) | (((uint32_t)*(key+17))<<16) |
+            (((uint32_t)*(key+18))<<8) | (((uint32_t)*(key+19)));
+    s10=(((uint32_t)*(key+20))<<24) | (((uint32_t)*(key+21))<<16) |
+            (((uint32_t)*(key+22))<<8) | (((uint32_t)*(key+23)));
+    s9=(((uint32_t)*(key+24))<<24) | (((uint32_t)*(key+25))<<16) |
+            (((uint32_t)*(key+26))<<8) | (((uint32_t)*(key+27)));
+    s8=(((uint32_t)*(key+28))<<24) | (((uint32_t)*(key+29))<<16) |
+            (((uint32_t)*(key+30))<<8) | (((uint32_t)*(key+31)));
+    s7 =~s15; /* bitwise inverse */
+    s6 =~s14;
+    s5 =~s13;
+    s4 =~s12;
+    s3 =~s11;
+    s2 =~s10;
+    s1 =~s9;
+    s0 =~s8;
+    return snow_loadkey_fast_p_common(IV3, IV2, IV1, IV0);
+}
+
 inline Inner::Inner(const void * const memptr) noexcept
     : keystream_ready(sizeof(keystream))
 {
@@ -82,104 +190,14 @@ inline Inner::Inner(const void * const memptr) noexcept
 
     memcpy(snowkey.data(), memptr, snowkey.size());
     memcpy(iv.data(), ptrAdd(memptr, snowkey.size()), iv.size());
-    snow_loadkey_fast_p(snowkey.data(), 256u, iv[0u], iv[1u], iv[2u], iv[3u]);
+    snow_loadkey_fast_p<256u>(snowkey.data(), iv[0u], iv[1u], iv[2u], iv[3u]);
 }
 
-/*
- * Function:  snow_loadkey_fast
- *
- * Synopsis:
- *   Loads the key material and performs the initial mixing.
- *
- * Returns: void
- *
- * Assumptions:
- *   keysize is either 128 or 256.
- *   key is of proper length, for keysize=128, key is of lenght 16 bytes
- *      and for keysize=256, key is of length 32 bytes.
- *   key is given in big endian format,
- *   For 128 bit key:
- *        key[0]-> msb of k_3
- *         ...
- *        key[3]-> lsb of k_3
- *         ...
- *        key[12]-> msb of k_0
- *         ...
- *        key[15]-> lsb of k_0
- *
- *   For 256 bit key:
- *        key[0]-> msb of k_7
- *          ...
- *        key[3]-> lsb of k_7
- *          ...
- *        key[28]-> msb of k_0
- *          ...
- *        key[31]-> lsb of k_0
- *
- * Authors:
- * Patrik Ekdahl & Thomas Johansson
- * Dept. of Information Technology
- * P.O. Box 118
- * SE-221 00 Lund, Sweden,
- * email: {patrik,thomas}@it.lth.se
- */
-inline void Inner::snow_loadkey_fast_p(uint8_t * key,
-                                       uint32_t keysize,
-                                       uint32_t IV3,
-                                       uint32_t IV2,
-                                       uint32_t IV1,
-                                       uint32_t IV0) noexcept
+inline void Inner::snow_loadkey_fast_p_common(uint32_t IV3,
+                                              uint32_t IV2,
+                                              uint32_t IV1,
+                                              uint32_t IV0) noexcept
 {
-    if (keysize==128) {
-        s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
-                (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
-        s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
-                (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
-        s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
-                (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
-        s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
-                (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
-        s11 =~s15; /* bitwise inverse */
-        s10 =~s14;
-        s9  =~s13;
-        s8  =~s12;
-        s7  = s15; /* just copy */
-        s6  = s14;
-        s5  = s13;
-        s4  = s12;
-        s3  =~s15; /* bitwise inverse */
-        s2  =~s14;
-        s1  =~s13;
-        s0  =~s12;
-    }
-    else {  /* assume keysize=256 */
-        assert(keysize == 256u);
-        s15=(((uint32_t)*(key+0))<<24) | (((uint32_t)*(key+1))<<16) |
-                (((uint32_t)*(key+2))<<8) | (((uint32_t)*(key+3)));
-        s14=(((uint32_t)*(key+4))<<24) | (((uint32_t)*(key+5))<<16) |
-                (((uint32_t)*(key+6))<<8) | (((uint32_t)*(key+7)));
-        s13=(((uint32_t)*(key+8))<<24) | (((uint32_t)*(key+9))<<16) |
-                (((uint32_t)*(key+10))<<8) | (((uint32_t)*(key+11)));
-        s12=(((uint32_t)*(key+12))<<24) | (((uint32_t)*(key+13))<<16) |
-                (((uint32_t)*(key+14))<<8) | (((uint32_t)*(key+15)));
-        s11=(((uint32_t)*(key+16))<<24) | (((uint32_t)*(key+17))<<16) |
-                (((uint32_t)*(key+18))<<8) | (((uint32_t)*(key+19)));
-        s10=(((uint32_t)*(key+20))<<24) | (((uint32_t)*(key+21))<<16) |
-                (((uint32_t)*(key+22))<<8) | (((uint32_t)*(key+23)));
-        s9=(((uint32_t)*(key+24))<<24) | (((uint32_t)*(key+25))<<16) |
-                (((uint32_t)*(key+26))<<8) | (((uint32_t)*(key+27)));
-        s8=(((uint32_t)*(key+28))<<24) | (((uint32_t)*(key+29))<<16) |
-                (((uint32_t)*(key+30))<<8) | (((uint32_t)*(key+31)));
-        s7 =~s15; /* bitwise inverse */
-        s6 =~s14;
-        s5 =~s13;
-        s4 =~s12;
-        s3 =~s11;
-        s2 =~s10;
-        s1 =~s9;
-        s0 =~s8;
-    }
-
     /* XOR IV values */
     s15^=IV0;
     s12^=IV1;
