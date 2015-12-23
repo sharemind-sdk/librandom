@@ -33,7 +33,7 @@ using Snow2Iv = std::array<uint32_t, 4u>;
 
 class SNOW2RandomEngine: public SharemindRandomEngine {
 
-private: /* Types: */
+public: /* Types: */
 
     template <typename Array>
     struct SizeOfArrayInBytes {
