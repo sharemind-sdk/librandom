@@ -129,7 +129,7 @@ struct Inner {
     };
     static_assert(sizeof(keystream) == 64u, "");
     static_assert(sizeof(un_byte_keystream) == 64u, "");
-    uint8_t keystream_ready = sizeof(keystream);
+    unsigned haveData = 0u;
 
 };
 
@@ -234,37 +234,49 @@ inline void Inner::snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept {
  *
  */
 inline void Inner::snow_keystream_fast_p() noexcept {
+    assert(haveData == 0u);
     for (unsigned i = 0u; i < 16u; i++) {
         s[i] = a_mul(s[i]) ^ s[(i + 2u) % 16u] ^ ainv_mul(s[(i + 11u) % 16u]);
         newRs((i + 5u) % 16u);
         keystream[i] = (r1 + s[i]) ^ r2 ^ s[(i + 1u) % 16u];
     }
+    haveData = sizeof(keystream);
 }
 
 void Inner::fillBytes(void * memptr, size_t size) noexcept {
     if (size <= 0u)
         return;
     assert(memptr);
+    static constexpr size_t const maxBytes = sizeof(un_byte_keystream);
+    assert(haveData <= maxBytes);
 
-    static_assert(sizeof(keystream) == 64u, "");
-    size_t currentKeystreamSize = sizeof(keystream) - keystream_ready;
-    size_t offsetStart = 0u;
-    size_t offsetEnd = currentKeystreamSize;
-
-    // Fill big chunks
-    while (offsetEnd <= size) {
-        memcpy(ptrAdd(memptr, offsetStart), &un_byte_keystream[keystream_ready], currentKeystreamSize);
+    // Fill leftover data from last time and generate new data if needed:
+    if (haveData < maxBytes) {
+        auto const * const readPtr = &un_byte_keystream[maxBytes - haveData];
+        if (size <= haveData) {
+            memcpy(memptr, readPtr, size);
+            haveData -= size;
+            return;
+        }
+        memcpy(memptr, readPtr, haveData);
+        memptr = ptrAdd(memptr, haveData);
+        size -= haveData;
         snow_keystream_fast_p();
-        keystream_ready = 0;
-        currentKeystreamSize = sizeof(keystream);
-        offsetStart = offsetEnd;
-        offsetEnd += sizeof(keystream);
+    }
+    assert(haveData == maxBytes);
+
+    // Fill big chunks (except last one it that one is big as well):
+    while (size > maxBytes) {
+        memcpy(memptr, un_byte_keystream.data(), maxBytes);
+        memptr = ptrAdd(memptr, maxBytes);
+        size -= maxBytes;
+        snow_keystream_fast_p();
+        assert(haveData == maxBytes);
     }
 
-    size_t const remainingSize = size - offsetStart;
-    memcpy(ptrAdd(memptr, offsetStart), &un_byte_keystream[keystream_ready], remainingSize);
-    keystream_ready += remainingSize;
-    assert(keystream_ready <= sizeof(keystream)); // the supply may deplete
+    // Fill the rest:
+    memcpy(memptr, un_byte_keystream.data(), size);
+    haveData = maxBytes - size;
 }
 
 extern "C"
