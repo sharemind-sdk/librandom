@@ -69,11 +69,11 @@ public: /* Methods: */
     inline SeedRng()
         : m_inner{
             []{
-                size_t const seedSize = SNOW2_random_engine_seed_size();
+                constexpr size_t const seedSize = SNOW2RandomEngine::SeedSize;
                 assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
                 unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
                 cryptographicRandom(tempBuffer, seedSize);
-                return make_SNOW2_random_engine(tempBuffer);
+                return new SNOW2RandomEngine(tempBuffer);
             }()}
     {}
 
@@ -157,7 +157,7 @@ SharemindRandomEngine* makeThreadBufferedEngine(SharemindRandomEngine* coreEngin
 
 inline size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
-    case SHAREMIND_RANDOM_SNOW2: return SNOW2_random_engine_seed_size();
+    case SHAREMIND_RANDOM_SNOW2: return SNOW2RandomEngine::SeedSize;
     case SHAREMIND_RANDOM_CHACHA20: return ChaCha20_random_engine_seed_size();
     case SHAREMIND_RANDOM_AES: return AES_random_engine_seed_size();
     default:
@@ -224,7 +224,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
     try {
         switch (conf.core_engine) {
         case SHAREMIND_RANDOM_SNOW2:
-            coreEngine = make_SNOW2_random_engine(memptr);
+            coreEngine = new SNOW2RandomEngine(memptr);
             break;
         case SHAREMIND_RANDOM_CHACHA20:
             coreEngine = make_ChaCha20_random_engine(memptr);

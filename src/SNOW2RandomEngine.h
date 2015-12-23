@@ -22,17 +22,54 @@
 
 #include "librandom.h"
 
+#include <array>
+#include <cstdint>
+
+
 namespace sharemind {
 
-size_t SNOW2_random_engine_seed_size() noexcept;
+using Snow2Key = std::array<uint8_t, 32u>;
+using Snow2Iv = std::array<uint32_t, 4u>;
 
-/**
- * \param[in] memptr_ pointer to the seed. Must contain sufficiently long seed.
- * \brief Construct a random engine based on SNOW2 stream cipher.
- * \returns A new instance of the random engine.
- * \throws std::bad_alloc
- */
-SharemindRandomEngine* make_SNOW2_random_engine(const void* memptr_);
+class SNOW2RandomEngine: public SharemindRandomEngine {
+
+private: /* Types: */
+
+    template <typename Array>
+    struct SizeOfArrayInBytes {
+        static constexpr size_t value = std::tuple_size<Array>::value
+                                        * sizeof(typename Array::value_type);
+        static_assert(sizeof(Array) == value, "");
+    };
+
+public: /* Types: */
+
+    constexpr static size_t const SeedSize =
+            SizeOfArrayInBytes<Snow2Key>::value
+            + SizeOfArrayInBytes<Snow2Iv>::value;
+
+public: /* Methods: */
+
+    /** \param[in] memptr pointer to the seed of SeedSize bytes. */
+    explicit SNOW2RandomEngine(const void * const memptr);
+
+    virtual ~SNOW2RandomEngine() noexcept;
+
+    void fillBytes(void * memptr, size_t size) noexcept;
+
+    inline static SNOW2RandomEngine & fromWrapper(SharemindRandomEngine & base)
+            noexcept
+    { return static_cast<SNOW2RandomEngine &>(base); }
+
+    inline static SNOW2RandomEngine const & fromWrapper(
+            SharemindRandomEngine const & base) noexcept
+    { return static_cast<SNOW2RandomEngine const &>(base); }
+
+private: /* Fields: */
+
+    void * const m_inner;
+
+};
 
 } /* namespace sharemind { */
 
