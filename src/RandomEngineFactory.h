@@ -17,8 +17,8 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_LIBRANDOME_RANDOMENGINEFACTORY_H
-#define SHAREMIND_LIBRANDOME_RANDOMENGINEFACTORY_H
+#ifndef SHAREMIND_LIBRANDOM_RANDOMENGINEFACTORY_H
+#define SHAREMIND_LIBRANDOM_RANDOMENGINEFACTORY_H
 
 #include "librandom.h"
 
@@ -175,4 +175,4 @@ SharemindRandomEngineFactoryFacility* make_default_random_engine_factory(
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_LIBRANDOME_RANDOMENGINEFACTORY_H */
+#endif /* SHAREMIND_LIBRANDOM_RANDOMENGINEFACTORY_H */
