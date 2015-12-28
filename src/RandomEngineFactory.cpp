@@ -139,22 +139,6 @@ inline void seedHandleExceptions(SharemindRandomEngineCtorError* e) noexcept {
     }
 }
 
-inline
-SharemindRandomEngine* makeThreadBufferedEngine(SharemindRandomEngine* coreEngine,
-                                                size_t bufferSize,
-                                                SharemindRandomEngineCtorError* e) noexcept
-{
-    assert(coreEngine);
-
-    try {
-        return make_thread_buffered_random_engine(RandomEngine {coreEngine}, bufferSize);
-    }
-    catch (...) {
-        seedHandleExceptions(e);
-        return nullptr;
-    }
-}
-
 inline size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
     case SHAREMIND_RANDOM_SNOW2: return SNOW2RandomEngine::SeedSize;
@@ -262,7 +246,13 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
     case SHAREMIND_RANDOM_BUFFERING_NONE:
         return coreEngine;
     case SHAREMIND_RANDOM_BUFFERING_THREAD:
-        return makeThreadBufferedEngine(coreEngine, conf.buffer_size, e);
+        try {
+            return make_thread_buffered_random_engine(RandomEngine{coreEngine},
+                                                      conf.buffer_size);
+        } catch (...) {
+            seedHandleExceptions(e);
+            return nullptr;
+        }
     default:
         break;
     }
