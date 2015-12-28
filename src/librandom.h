@@ -31,16 +31,18 @@ extern "C" {
  */
 
 struct SharemindRandomEngineFactoryFacility_;
-typedef struct SharemindRandomEngineFactoryFacility_ SharemindRandomEngineFactoryFacility;
+typedef struct SharemindRandomEngineFactoryFacility_
+        SharemindRandomEngineFactoryFacility;
 
 struct SharemindRandomEngine_;
 typedef struct SharemindRandomEngine_ SharemindRandomEngine;
 
 /**
  * \brief The core random number engine types.
- * \note This does not consider wrappers for core engines, such as the RandomBufferAgent,
- * but only the generators that are directly able to generate random numbers.
- * The "wrapper" engines are configured by selecting the appropriate buffering mode.
+ * \note This does not consider wrappers for core engines, such as the
+ *       RandomBufferAgent, but only the generators that are directly able to
+ *       generate random numbers. The "wrapper" engines are configured by
+ *       selecting the appropriate buffering mode.
  */
 typedef enum SharemindCoreRandomEngineKind_ {
 
@@ -85,7 +87,7 @@ typedef struct SharemindRandomEngineConf_ {
     /** How to buffer the core generator. */
     SharemindRandomEngineBufferingMode buffer_mode;
 
-    /** The buffer size in bytes. Only used if relevant to the buffering mode. */
+    /** The buffer size in bytes. Only used if relevant to the buffering mode.*/
     size_t                             buffer_size;
 } SharemindRandomEngineConf;
 
@@ -104,10 +106,16 @@ typedef enum SharemindRandomEngineCtorError_ {
     /** The generator is not supported. */
     SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED,
 
-    /** Construction failed because of a memory error (for example std::bad_alloc). */
+    /**
+       Construction failed because of a memory error (for example
+       std::bad_alloc).
+    */
     SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY,
 
-    /** Construction failed due to some other problem (library not working as expected). */
+    /**
+       Construction failed due to some other problem (library not working as
+       expected).
+    */
     SHAREMIND_RANDOM_CTOR_OTHER_ERROR,
 
     /*
@@ -123,7 +131,10 @@ typedef enum SharemindRandomEngineCtorError_ {
     /** Seeding with a fixed seed is not supported by this generator. */
     SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED,
 
-    /** Seeding failed due to some other problem (library not working as expected). */
+    /**
+       Seeding failed due to some other problem (library not working as
+       expected).
+    */
     SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR,
 
 } SharemindRandomEngineCtorError;
@@ -141,38 +152,41 @@ struct SharemindRandomEngineFactoryFacility_ {
      * configuration.
      */
     SharemindRandomEngineConf (* const get_default_configuration)(
-            const SharemindRandomEngineFactoryFacility* facility);
+            SharemindRandomEngineFactoryFacility const * facility);
 
     /**
      * \param[in] facility pointer to this factory facility.
-     * \param[in] conf the configuration that specified which random engine to use and how it's configured.
-     * \param[out] e error flag. Set only on error, not touched otherwise. May be NULL.
+     * \param[in] conf the configuration that specified which random engine to
+     *                 use and how it's configured.
+     * \param[out] e error flag. Set only on error, not touched otherwise.
+                     May be NULL.
      * \returns a new random number generation engine.
      * \brief construct a new random number generator with a fresh seed.
      */
-    SharemindRandomEngine* (* const make_random_engine)(
-            SharemindRandomEngineFactoryFacility* facility,
+    SharemindRandomEngine * (* const make_random_engine)(
+            SharemindRandomEngineFactoryFacility * facility,
             SharemindRandomEngineConf conf,
-            SharemindRandomEngineCtorError* e);
+            SharemindRandomEngineCtorError * e);
     /**
      * \param[in] memptr pointer to the seed.
      * \param[in] size of the seed.
      * \brief construct a new random number generator with a given seed.
      * \see make_random_engine for details and other parameters.
      */
-    SharemindRandomEngine* (* const make_random_engine_with_seed)(
-            SharemindRandomEngineFactoryFacility* facility,
+    SharemindRandomEngine * (* const make_random_engine_with_seed)(
+            SharemindRandomEngineFactoryFacility * facility,
             SharemindRandomEngineConf conf,
-            const void* memptr,
+            void const * memptr,
             size_t size,
-            SharemindRandomEngineCtorError* e);
+            SharemindRandomEngineCtorError * e);
 
     /**
      * \param[in] facility pointer to this factory facility.
-     * \post The facility is no longer valid and any subsequent operations on it will have undefined behaviour.
+     * \post The facility is no longer valid and any subsequent operations on it
+     *       will have undefined behaviour.
      * \brief frees this factory facility.
      */
-    void (* const free)(SharemindRandomEngineFactoryFacility* facility);
+    void (* const free)(SharemindRandomEngineFactoryFacility * facility);
 };
 
 /**
@@ -185,14 +199,17 @@ struct SharemindRandomEngine_ {
      * \param[out] memptr memory region to randomize,
      * \param[in] size size of the memory region to randomize.
      */
-    void (* const fill_bytes)(SharemindRandomEngine* rng, void* memptr, size_t size);
+    void (* const fill_bytes)(SharemindRandomEngine * rng,
+                              void * memptr,
+                              size_t size);
 
     /**
      * \param[in] rng pointer to this RNG engine.
-     * \post The RNG is no longer valid and any subsequent operations on it will have undefined behaviour.
+     * \post The RNG is no longer valid and any subsequent operations on it will
+     *       have undefined behaviour.
      * \brief free the RNG.
      */
-    void (* const free)(SharemindRandomEngine* rng);
+    void (* const free)(SharemindRandomEngine * rng);
 };
 
 
