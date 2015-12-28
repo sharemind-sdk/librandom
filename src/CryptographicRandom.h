@@ -33,8 +33,11 @@ SHAREMIND_EXTERN_C_BEGIN
 
 size_t sharemindCryptographicRandomNonblocking(void * buf,
                                                size_t bufSize) noexcept;
+size_t sharemindCryptographicURandomNonblocking(void * buf,
+                                                size_t bufSize) noexcept;
 
 void sharemindCyptographicRandom(void * buf, size_t bufSize) noexcept;
+void sharemindCyptographicURandom(void * buf, size_t bufSize) noexcept;
 
 SHAREMIND_EXTERN_C_END
 
@@ -45,9 +48,14 @@ namespace sharemind {
 inline size_t cryptographicRandomNonblocking(void * buf,
                                              size_t bufSize) noexcept
 { return ::sharemindCryptographicRandomNonblocking(buf, bufSize); }
+inline size_t cryptographicURandomNonblocking(void * buf,
+                                              size_t bufSize) noexcept
+{ return ::sharemindCryptographicURandomNonblocking(buf, bufSize); }
 
 inline void cryptographicRandom(void * buf, size_t bufSize) noexcept
 { return ::sharemindCyptographicRandom(buf, bufSize); }
+inline void cryptographicURandom(void * buf, size_t bufSize) noexcept
+{ return ::sharemindCyptographicURandom(buf, bufSize); }
 
 } /* namespace sharemind { */
 #endif /* __cplusplus */
