@@ -148,8 +148,8 @@ struct SharemindRandomEngineFactoryFacility_ {
      * \param[in] facility pointer to this factory facility.
      * \returns the default configuration (set in the configuration file).
      * \note only modify the configuration when you absolutely must use
-     * different random number generator than the one specified in the default
-     * configuration.
+     *       different random number generator than the one specified in the
+     *       default configuration.
      */
     SharemindRandomEngineConf (* const get_default_configuration)(
             SharemindRandomEngineFactoryFacility const * facility);
