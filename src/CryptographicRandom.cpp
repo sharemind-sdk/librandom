@@ -42,6 +42,8 @@
     #include <linux/random.h>
     #include <unistd.h>
 #else
+    #warning No getrandom(2) detected!
+    #warning Falling back to slow alternative of reading from /dev/u?random.
     #include <fcntl.h>
     #include <mutex>
     #include <sharemind/abort.h>
