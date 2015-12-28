@@ -44,21 +44,22 @@ namespace /* anonymous */ {
 extern "C" {
 
 SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
-        const SharemindRandomEngineFactoryFacility* facility);
+        const SharemindRandomEngineFactoryFacility * facility);
 
-SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
-        SharemindRandomEngineFactoryFacility* facility,
+SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine(
+        SharemindRandomEngineFactoryFacility * facility,
         SharemindRandomEngineConf conf,
-        SharemindRandomEngineCtorError* e);
+        SharemindRandomEngineCtorError * e);
 
-SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
-        SharemindRandomEngineFactoryFacility* facility,
+SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine_with_seed(
+        SharemindRandomEngineFactoryFacility * facility,
         SharemindRandomEngineConf conf,
-        const void* memptr,
+        const void * memptr,
         size_t size,
-        SharemindRandomEngineCtorError* e);
+        SharemindRandomEngineCtorError * e);
 
-void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility);
+void RandomEngineFactoryImpl_free(
+        SharemindRandomEngineFactoryFacility * facility);
 
 }
 
@@ -101,8 +102,7 @@ public: /* Methods: */
             RandomEngineFactoryImpl_get_default_configuration,
             RandomEngineFactoryImpl_make_random_engine,
             RandomEngineFactoryImpl_make_random_engine_with_seed,
-            RandomEngineFactoryImpl_free
-        }
+            RandomEngineFactoryImpl_free}
         , m_conf (conf)
     {}
 
@@ -110,62 +110,56 @@ public: /* Methods: */
             SharemindRandomEngineFactoryFacility & base) noexcept
     { return static_cast<RandomEngineFactoryImpl &>(base); }
 
-    inline static const RandomEngineFactoryImpl& fromWrapper(const SharemindRandomEngineFactoryFacility& base) noexcept {
-        return static_cast<const RandomEngineFactoryImpl&>(base);
-    }
+    inline static RandomEngineFactoryImpl const & fromWrapper(
+            SharemindRandomEngineFactoryFacility const & base) noexcept
+    { return static_cast<RandomEngineFactoryImpl const &>(base); }
 
 public: /* Fields: */
-    const SharemindRandomEngineConf m_conf;
+    SharemindRandomEngineConf const m_conf;
 };
 
-inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
-                         SharemindRandomEngineCtorError e)
-{
-    if (!ptr)
-        *ptr = e;
-}
+inline SharemindRandomEngineCtorError setErrorFlag(
+        SharemindRandomEngineCtorError * ptr,
+        SharemindRandomEngineCtorError e)
+{ return ptr ? (*ptr = e) : e; }
 
-inline void seedHandleExceptions(SharemindRandomEngineCtorError* e) noexcept {
+inline void seedHandleExceptions(SharemindRandomEngineCtorError * e) noexcept {
     try {
-        if (const auto eptr = std::current_exception()) {
+        if (auto const eptr = std::current_exception())
             std::rethrow_exception(eptr);
-        }
-    }
-    catch (const std::bad_alloc &) {
+    } catch (std::bad_alloc const &) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY);
-    }
-    catch (...) {
+    } catch (...) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
     }
 }
 
 inline size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
-    case SHAREMIND_RANDOM_SNOW2: return SNOW2RandomEngine::SeedSize;
+    case SHAREMIND_RANDOM_SNOW2:    return SNOW2RandomEngine::SeedSize;
     case SHAREMIND_RANDOM_CHACHA20: return ChaCha20_random_engine_seed_size();
-    case SHAREMIND_RANDOM_AES: return AES_random_engine_seed_size();
-    default:
-        return 0;
+    case SHAREMIND_RANDOM_AES:      return AES_random_engine_seed_size();
+    default:                        return 0u;
     }
 }
 
 extern "C"
 SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
-        const SharemindRandomEngineFactoryFacility* facility)
+        SharemindRandomEngineFactoryFacility const * facility)
 {
     assert(facility);
     return RandomEngineFactoryImpl::fromWrapper(*facility).m_conf;
 }
 
 extern "C"
-SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
-        SharemindRandomEngineFactoryFacility* facility,
+SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine(
+        SharemindRandomEngineFactoryFacility * facility,
         SharemindRandomEngineConf conf,
-        SharemindRandomEngineCtorError* e)
+        SharemindRandomEngineCtorError * e)
 {
     assert(facility);
 
-    const auto seedSize = getSeedSize(conf.core_engine);
+    auto const seedSize = getSeedSize(conf.core_engine);
     if (seedSize > SEED_TEMP_BUFFER_SIZE) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR);
         return nullptr;
@@ -179,23 +173,26 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine(
 
     seedRng.generateSeed(tempBuffer, seedSize);
 
-    return RandomEngineFactoryImpl_make_random_engine_with_seed(
-                facility, conf, tempBuffer, seedSize, e);
+    return RandomEngineFactoryImpl_make_random_engine_with_seed(facility,
+                                                                conf,
+                                                                tempBuffer,
+                                                                seedSize,
+                                                                e);
 }
 
 extern "C"
 SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
-        SharemindRandomEngineFactoryFacility* facility,
+        SharemindRandomEngineFactoryFacility * facility,
         SharemindRandomEngineConf conf,
-        const void* memptr,
+        void const * memptr,
         size_t size,
-        SharemindRandomEngineCtorError* e)
+        SharemindRandomEngineCtorError * e)
 {
     assert(facility);
 
     // Verify seed:
 
-    const auto seedSize = getSeedSize(conf.core_engine);
+    auto const seedSize = getSeedSize(conf.core_engine);
     if (seedSize > size) {
         setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT);
         return nullptr;
@@ -203,7 +200,7 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
 
     // Construct core engine:
 
-    SharemindRandomEngine* coreEngine = nullptr;
+    SharemindRandomEngine * coreEngine = nullptr;
 
     try {
         switch (conf.core_engine) {
@@ -230,52 +227,47 @@ SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
             coreEngine = make_OpenSSL_random_engine();
             break;
         }
-    }
-    catch (...) {
+    } catch (...) {
         seedHandleExceptions(e);
         return nullptr;
     }
 
-    if (!coreEngine) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
-        return nullptr;
-    }
-
-    // Add buffering if need be:
-    switch (conf.buffer_mode) {
-    case SHAREMIND_RANDOM_BUFFERING_NONE:
-        return coreEngine;
-    case SHAREMIND_RANDOM_BUFFERING_THREAD:
-        try {
-            return make_thread_buffered_random_engine(RandomEngine{coreEngine},
-                                                      conf.buffer_size);
-        } catch (...) {
-            seedHandleExceptions(e);
-            return nullptr;
+    if (coreEngine) {
+        // Add buffering if need be:
+        switch (conf.buffer_mode) {
+        case SHAREMIND_RANDOM_BUFFERING_NONE:
+            return coreEngine;
+        case SHAREMIND_RANDOM_BUFFERING_THREAD:
+            try {
+                return make_thread_buffered_random_engine(
+                            RandomEngine{coreEngine},
+                            conf.buffer_size);
+            } catch (...) {
+                seedHandleExceptions(e);
+                return nullptr;
+            }
+        default:
+            break;
         }
-    default:
-        break;
     }
-
     setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
     return nullptr;
 }
 
 extern "C"
-void RandomEngineFactoryImpl_free(SharemindRandomEngineFactoryFacility* facility) {
+void RandomEngineFactoryImpl_free(
+        SharemindRandomEngineFactoryFacility * facility)
+{
     if (facility)
         delete &RandomEngineFactoryImpl::fromWrapper(*facility);
 }
-
 
 } // namespace anonymous
 
 namespace sharemind {
 
-SharemindRandomEngineFactoryFacility* make_default_random_engine_factory(
+SharemindRandomEngineFactoryFacility * make_default_random_engine_factory(
         SharemindRandomEngineConf defaultConf)
-{
-    return new RandomEngineFactoryImpl {defaultConf};
-}
+{ return new RandomEngineFactoryImpl {defaultConf}; }
 
 } // namespace sharemind
