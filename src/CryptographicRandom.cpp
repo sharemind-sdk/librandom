@@ -166,20 +166,26 @@ int main() {
     };
     sharemind::cryptographicRandom(v.data(), ARRAY_SIZE);
     printVector();
-    v.clear();
+    sharemind::cryptographicURandom(v.data(), ARRAY_SIZE);
+    printVector();
     std::cout << "------------------------" << std::endl;
-    v.resize(ARRAY_SIZE, ARRAY_FILL);
-    ElemType * buf = v.data();
-    size_t sizeLeft = ARRAY_SIZE;
-    for (;;) {
-        size_t const r =
-                sharemind::cryptographicRandomNonblocking(buf, sizeLeft);
-        assert(r <= sizeLeft);
-        sizeLeft -= r;
-        if (sizeLeft <= 0u)
-            break;
-        buf += r;
-    }
+    auto const blockingRandom = [&](
+            decltype(sharemind::cryptographicRandomNonblocking) fn)
+    {
+        ElemType * buf = v.data();
+        size_t sizeLeft = ARRAY_SIZE;
+        for (;;) {
+            size_t const r = fn(buf, sizeLeft);
+            assert(r <= sizeLeft);
+            sizeLeft -= r;
+            if (sizeLeft <= 0u)
+                break;
+            buf += r;
+        }
+    };
+    blockingRandom(&sharemind::cryptographicRandomNonblocking);
+    printVector();
+    blockingRandom(&sharemind::cryptographicURandomNonblocking);
     printVector();
 }
 
