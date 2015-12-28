@@ -234,7 +234,6 @@ inline void Inner::snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept {
  *
  */
 inline void Inner::snow_keystream_fast_p() noexcept {
-    assert(haveData == 0u);
     for (unsigned i = 0u; i < 16u; i++) {
         s[i] = a_mul(s[i]) ^ s[(i + 2u) % 16u] ^ ainv_mul(s[(i + 11u) % 16u]);
         newRs((i + 5u) % 16u);
