@@ -20,18 +20,44 @@
 #ifndef SHAREMIND_LIBRANDOM_CHACHA20RANDOMENGINE_H
 #define SHAREMIND_LIBRANDOM_CHACHA20RANDOMENGINE_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
+#include <cstdint>
+
 
 namespace sharemind {
 
-size_t ChaCha20_random_engine_seed_size() noexcept;
 
+class ChaCha20RandomEngine: public RandomEngine {
 
-/**
- * \brief Construct a random engine based on chacha20 stream cipher.
- * \returns A new instance of the engine.
- */
-SharemindRandomEngine* make_ChaCha20_random_engine(const void* memptr_);
+private: /* Constants: */
+
+    static constexpr size_t const CHACHA20_KEY_SIZE = 32u;
+    static constexpr size_t const CHACHA20_BLOCK_SIZE = 64u;
+    static constexpr size_t const CHACHA20_NONCE_SIZE = 8u;
+
+public: /* Constants: */
+
+    static constexpr size_t const SeedSize =
+            CHACHA20_KEY_SIZE + CHACHA20_NONCE_SIZE;
+
+public: /* Methods: */
+
+    explicit ChaCha20RandomEngine(void const * seed) noexcept;
+
+    void fillBytes(void * buffer, size_t bufferSize) noexcept override;
+
+private: /* Fields: */
+
+    /// Internal state of the ChaCha20 cipher:
+    uint32_t m_state[16u];
+
+    /// Number of bytes that have been consumed from the block:
+    size_t m_block_consumed = CHACHA20_BLOCK_SIZE;
+
+    /// A single generated block:
+    uint8_t m_block[CHACHA20_BLOCK_SIZE];
+
+};
 
 } /* namespace sharemind { */
 

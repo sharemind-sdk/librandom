@@ -20,23 +20,41 @@
 #ifndef SHAREMIND_LIBRANDOM_RANDOMBUFFERAGENT_H
 #define SHAREMIND_LIBRANDOM_RANDOMBUFFERAGENT_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
 
 #include <cstddef>
+#include <memory>
+#include <sharemind/CircBufferSCSP.h>
+#include <sharemind/Stoppable.h>
+#include <thread>
+#include "librandom.h"
+
 
 namespace sharemind {
 
-class RandomEngine;
+class RandomBufferAgent: public RandomEngine {
 
-/**
- * \brief Construct thread buffered random engine.
- * \param[in] rng The core random number engine.
- * \returns A new instance of the random engine.
- * \throws std::bad_alloc
- */
-SharemindRandomEngine* make_thread_buffered_random_engine(
-        RandomEngine rng,
-        size_t bufferSize);
+public: /* Methods: */
+
+    RandomBufferAgent(std::unique_ptr<RandomEngine> randomEngine,
+                      size_t const bufferSize);
+
+    ~RandomBufferAgent() noexcept override;
+
+    void fillBytes(void * buffer, size_t bufferSize) noexcept override;
+
+private: /* Methods: */
+
+    void fillerThread() noexcept;
+
+public: /* Fields: */
+
+    std::unique_ptr<RandomEngine> m_engine;
+    CircBufferSCSP<void> m_buffer;
+    Stoppable m_stoppable;
+    std::thread m_thread;
+
+};
 
 } /* namespace sharemind { */
 

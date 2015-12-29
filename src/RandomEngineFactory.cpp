@@ -29,6 +29,7 @@
 #include "SNOW2RandomEngine.h"
 
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <new>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
@@ -41,28 +42,6 @@ using namespace sharemind;
 
 namespace /* anonymous */ {
 
-extern "C" {
-
-SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
-        const SharemindRandomEngineFactoryFacility * facility);
-
-SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine(
-        SharemindRandomEngineFactoryFacility * facility,
-        SharemindRandomEngineConf conf,
-        SharemindRandomEngineCtorError * e);
-
-SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine_with_seed(
-        SharemindRandomEngineFactoryFacility * facility,
-        SharemindRandomEngineConf conf,
-        const void * memptr,
-        size_t size,
-        SharemindRandomEngineCtorError * e);
-
-void RandomEngineFactoryImpl_free(
-        SharemindRandomEngineFactoryFacility * facility);
-
-}
-
 class SeedRng {
 
 public: /* Methods: */
@@ -70,100 +49,52 @@ public: /* Methods: */
     inline SeedRng()
         : m_inner{
             []{
-                constexpr size_t const seedSize = SNOW2RandomEngine::SeedSize;
+                constexpr size_t const seedSize = Snow2RandomEngine::SeedSize;
                 assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
                 unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
                 cryptographicRandom(tempBuffer, seedSize);
-                return new SNOW2RandomEngine(tempBuffer);
+                return new Snow2RandomEngine{tempBuffer};
             }()}
     {}
 
-    inline ~SeedRng() noexcept { m_inner->free(m_inner); }
-
     void generateSeed(void * const buf, size_t const bufSize) {
         std::lock_guard<std::mutex> const guard{m_mutex};
-        m_inner->fill_bytes(m_inner, buf, bufSize);
+        m_inner->fillBytes(buf, bufSize);
     }
 
 private: /* Fields: */
 
     std::mutex m_mutex;
-    SharemindRandomEngine * m_inner;
+    std::unique_ptr<RandomEngine> m_inner;
 
 };
 
 static SeedRng seedRng;
-
-class RandomEngineFactoryImpl: public SharemindRandomEngineFactoryFacility {
-public: /* Methods: */
-
-    inline RandomEngineFactoryImpl(SharemindRandomEngineConf conf)
-        : SharemindRandomEngineFactoryFacility {
-            RandomEngineFactoryImpl_get_default_configuration,
-            RandomEngineFactoryImpl_make_random_engine,
-            RandomEngineFactoryImpl_make_random_engine_with_seed,
-            RandomEngineFactoryImpl_free}
-        , m_conf (conf)
-    {}
-
-    inline static RandomEngineFactoryImpl & fromWrapper(
-            SharemindRandomEngineFactoryFacility & base) noexcept
-    { return static_cast<RandomEngineFactoryImpl &>(base); }
-
-    inline static RandomEngineFactoryImpl const & fromWrapper(
-            SharemindRandomEngineFactoryFacility const & base) noexcept
-    { return static_cast<RandomEngineFactoryImpl const &>(base); }
-
-public: /* Fields: */
-    SharemindRandomEngineConf const m_conf;
-};
 
 inline SharemindRandomEngineCtorError setErrorFlag(
         SharemindRandomEngineCtorError * ptr,
         SharemindRandomEngineCtorError e)
 { return ptr ? (*ptr = e) : e; }
 
-inline void seedHandleExceptions(SharemindRandomEngineCtorError * e) noexcept {
-    try {
-        if (auto const eptr = std::current_exception())
-            std::rethrow_exception(eptr);
-    } catch (std::bad_alloc const &) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY);
-    } catch (...) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
-    }
-}
-
 inline size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
-    case SHAREMIND_RANDOM_SNOW2:    return SNOW2RandomEngine::SeedSize;
-    case SHAREMIND_RANDOM_CHACHA20: return ChaCha20_random_engine_seed_size();
-    case SHAREMIND_RANDOM_AES:      return AES_random_engine_seed_size();
+    case SHAREMIND_RANDOM_SNOW2:    return Snow2RandomEngine::SeedSize;
+    case SHAREMIND_RANDOM_CHACHA20: return ChaCha20RandomEngine::SeedSize;
+    case SHAREMIND_RANDOM_AES:      return AesRandomEngine::seedSize();
     default:                        return 0u;
     }
 }
 
-extern "C"
-SharemindRandomEngineConf RandomEngineFactoryImpl_get_default_configuration(
-        SharemindRandomEngineFactoryFacility const * facility)
-{
-    assert(facility);
-    return RandomEngineFactoryImpl::fromWrapper(*facility).m_conf;
-}
+} // namespace anonymous
 
-extern "C"
-SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine(
-        SharemindRandomEngineFactoryFacility * facility,
-        SharemindRandomEngineConf conf,
-        SharemindRandomEngineCtorError * e)
-{
-    assert(facility);
+namespace sharemind {
 
-    auto const seedSize = getSeedSize(conf.core_engine);
-    if (seedSize > SEED_TEMP_BUFFER_SIZE) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR);
-        return nullptr;
-    }
+RandomEngine * RandomEngineFactory::createRandomEngine(
+        RandomEngineFactory::Configuration const & conf)
+{
+    auto const seedSize = getSeedSize(conf.coreEngine);
+    if (seedSize > SEED_TEMP_BUFFER_SIZE)
+        throw RandomCtorSeedSelfGenerateError{};
 
     unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
 
@@ -173,101 +104,56 @@ SharemindRandomEngine * RandomEngineFactoryImpl_make_random_engine(
 
     seedRng.generateSeed(tempBuffer, seedSize);
 
-    return RandomEngineFactoryImpl_make_random_engine_with_seed(facility,
-                                                                conf,
-                                                                tempBuffer,
-                                                                seedSize,
-                                                                e);
+    return createRandomEngineWithSeed(conf, tempBuffer, seedSize);
 }
 
-extern "C"
-SharemindRandomEngine* RandomEngineFactoryImpl_make_random_engine_with_seed(
-        SharemindRandomEngineFactoryFacility * facility,
-        SharemindRandomEngineConf conf,
-        void const * memptr,
-        size_t size,
-        SharemindRandomEngineCtorError * e)
+
+RandomEngine * RandomEngineFactory::createRandomEngineWithSeed(
+        Configuration const & conf,
+        void const * seedData,
+        size_t seedSize)
 {
-    assert(facility);
-
     // Verify seed:
-
-    auto const seedSize = getSeedSize(conf.core_engine);
-    if (seedSize > size) {
-        setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT);
-        return nullptr;
-    }
+    auto const needSeedSize = getSeedSize(conf.coreEngine);
+    if (needSeedSize > seedSize)
+        throw RandomCtorSeedTooShort{};
 
     // Construct core engine:
-
-    SharemindRandomEngine * coreEngine = nullptr;
-
-    try {
-        switch (conf.core_engine) {
+    RandomEngine * coreEngine;
+    switch (conf.coreEngine) {
+        case SHAREMIND_RANDOM_NULL:
+            if (seedSize > 0u)
+                throw RandomCtorSeedNotSupported{};
+            return &NullRandomEngine::instance();
+        case SHAREMIND_RANDOM_OPENSSL:
+            if (seedSize > 0u)
+                throw RandomCtorSeedNotSupported{};
+            coreEngine = new OpenSslRandomEngine();
+            break;
         case SHAREMIND_RANDOM_SNOW2:
-            coreEngine = new SNOW2RandomEngine(memptr);
+            coreEngine = new Snow2RandomEngine(seedData);
             break;
         case SHAREMIND_RANDOM_CHACHA20:
-            coreEngine = make_ChaCha20_random_engine(memptr);
+            coreEngine = new ChaCha20RandomEngine(seedData);
             break;
         case SHAREMIND_RANDOM_AES:
-            coreEngine = make_AES_random_engine(memptr, e);
-            if (!coreEngine)
-                return nullptr;
+            coreEngine = new AesRandomEngine(seedData);
             break;
-        case SHAREMIND_RANDOM_NULL:
-            coreEngine = make_null_random_engine();
-            break;
-        case SHAREMIND_RANDOM_OPENSSL:
-            if (size > 0) {
-                setErrorFlag(e, SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED);
-                return nullptr;
-            }
-
-            coreEngine = make_OpenSSL_random_engine();
-            break;
-        }
-    } catch (...) {
-        seedHandleExceptions(e);
-        return nullptr;
-    }
-
-    if (coreEngine) {
-        // Add buffering if need be:
-        switch (conf.buffer_mode) {
-        case SHAREMIND_RANDOM_BUFFERING_NONE:
-            return coreEngine;
-        case SHAREMIND_RANDOM_BUFFERING_THREAD:
-            try {
-                return make_thread_buffered_random_engine(
-                            RandomEngine{coreEngine},
-                            conf.buffer_size);
-            } catch (...) {
-                seedHandleExceptions(e);
-                return nullptr;
-            }
         default:
-            break;
-        }
+            throw RandomCtorGeneratorNotSupported{};
     }
-    setErrorFlag(e, SHAREMIND_RANDOM_CTOR_OTHER_ERROR);
-    return nullptr;
+
+    // Add buffering if need be:
+    switch (conf.bufferMode) {
+    case SHAREMIND_RANDOM_BUFFERING_NONE:
+        return coreEngine;
+    case SHAREMIND_RANDOM_BUFFERING_THREAD:
+            return new RandomBufferAgent{
+                std::unique_ptr<RandomEngine>{coreEngine},
+                conf.bufferSize};
+    default:
+        throw RandomCtorOtherError{};
+    }
 }
-
-extern "C"
-void RandomEngineFactoryImpl_free(
-        SharemindRandomEngineFactoryFacility * facility)
-{
-    if (facility)
-        delete &RandomEngineFactoryImpl::fromWrapper(*facility);
-}
-
-} // namespace anonymous
-
-namespace sharemind {
-
-SharemindRandomEngineFactoryFacility * make_default_random_engine_factory(
-        SharemindRandomEngineConf defaultConf)
-{ return new RandomEngineFactoryImpl {defaultConf}; }
 
 } // namespace sharemind

@@ -24,6 +24,8 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <exception>
+#include <sharemind/Exception.h>
 
 namespace sharemind {
 
@@ -31,58 +33,34 @@ namespace sharemind {
  * \brief Facade for \a SharemindRandomEngine.
  */
 class RandomEngine {
+
+public: /* Types: */
+
+    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                         GeneratorNotSupportedException,
+                                         "Generator not supported!");
+
 public: /* Methods: */
 
-    inline explicit RandomEngine (SharemindRandomEngine* rng)
-        : m_inner (rng)
-    { }
+    virtual ~RandomEngine() noexcept {}
 
-    RandomEngine (const RandomEngine&) = delete;
-    RandomEngine& operator = (const RandomEngine&) = delete;
-
-    RandomEngine (RandomEngine&& other)
-        : m_inner (other.m_inner)
-    { other.m_inner = nullptr; }
-
-    RandomEngine& operator = (RandomEngine&& other) {
-        if (this != &other) {
-            m_inner = other.m_inner;
-            other.m_inner = nullptr;
-        }
-
-        return *this;
-    }
-
-    inline ~RandomEngine () {
-        if (m_inner) {
-            m_inner->free (m_inner);
-        }
-    }
-
-    inline void fillBytes (void* memptr, size_t numBytes) noexcept {
-        assert(m_inner);
-        m_inner->fill_bytes (m_inner, memptr, numBytes);
-    }
+    virtual void fillBytes(void * buffer, size_t size) noexcept = 0;
 
     template <typename T>
-    inline void fillBlock(T* begin, T* end) noexcept {
-        assert(m_inner);
+    inline void fillBlock(T * begin, T * end) noexcept {
         assert(begin <= end);
-        if (begin < end) {
-            fillBytes(begin, sizeof(T)*(end - begin));
-        }
+        if (begin < end)
+            fillBytes(begin, sizeof(T) * (end - begin));
     }
 
     template <typename T>
     inline T randomValue() noexcept(noexcept(T(T()))) {
-        assert(m_inner);
         T value;
         fillBytes(&value, sizeof(T));
         return value;
     }
 
-private: /* Fields: */
-    SharemindRandomEngine* m_inner;
 };
 
 } /* namespace sharemind { */

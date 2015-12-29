@@ -20,7 +20,7 @@
 #ifndef SHAREMIND_LIBRANDOM_SNOW2RANDOMENGINE_H
 #define SHAREMIND_LIBRANDOM_SNOW2RANDOMENGINE_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
 
 #include <array>
 #include <cstdint>
@@ -31,7 +31,7 @@ namespace sharemind {
 using Snow2Key = std::array<uint8_t, 32u>;
 using Snow2Iv = std::array<uint32_t, 4u>;
 
-class SNOW2RandomEngine: public SharemindRandomEngine {
+class Snow2RandomEngine: public RandomEngine {
 
 public: /* Types: */
 
@@ -50,20 +50,11 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    /** \param[in] memptr pointer to the seed of SeedSize bytes. */
-    explicit SNOW2RandomEngine(const void * const memptr);
+    explicit Snow2RandomEngine(const void * const seed);
 
-    virtual ~SNOW2RandomEngine() noexcept;
+    virtual ~Snow2RandomEngine() noexcept;
 
-    void fillBytes(void * memptr, size_t size) noexcept;
-
-    inline static SNOW2RandomEngine & fromWrapper(SharemindRandomEngine & base)
-            noexcept
-    { return static_cast<SNOW2RandomEngine &>(base); }
-
-    inline static SNOW2RandomEngine const & fromWrapper(
-            SharemindRandomEngine const & base) noexcept
-    { return static_cast<SNOW2RandomEngine const &>(base); }
+    void fillBytes(void * buffer, size_t size) noexcept override;
 
 private: /* Fields: */
 

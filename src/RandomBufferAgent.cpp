@@ -19,106 +19,62 @@
 
 
 #include "RandomBufferAgent.h"
-#include "RandomEngine.h"
 
-#include <exception>
-#include <sharemind/CircBufferSCSP.h>
-#include <sharemind/Exception.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
-#include <sharemind/Stoppable.h>
-#include <thread>
 
-using namespace sharemind;
-
-namespace /* anonymous */ {
-
-extern "C" {
-void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void * memptr_, size_t size);
-void BufferedRandomEngine_free(SharemindRandomEngine* rng_);
-}
-
-class RandomBufferAgent: public SharemindRandomEngine {
-public: /* Methods: */
-    SHAREMIND_DEFINE_EXCEPTION_UNUSED(std::exception, Exception);
-
-    inline RandomBufferAgent(RandomEngine randomEngine,
-                             const size_t bufferSize)
-        : SharemindRandomEngine {
-              BufferedRandomEngine_fill_bytes,
-              BufferedRandomEngine_free
-          }
-        , m_engine {std::move (randomEngine)}
-        , m_buffer (bufferSize)
-        , m_thread {&RandomBufferAgent::fillerThread, this}
-    { }
-
-    inline ~RandomBufferAgent () {
-        m_stoppable.stop ();
-        m_thread.join ();
-    }
-
-    inline static RandomBufferAgent& fromWrapper(SharemindRandomEngine& base) noexcept {
-        return static_cast<RandomBufferAgent&>(base);
-    }
-
-    /* Generate with inner generator! */
-    inline size_t operator()(void* memptr, size_t size) noexcept {
-        m_engine.fillBytes(memptr, size);
-        return size;
-    }
-
-private: /* Methods: */
-
-    void fillerThread() noexcept {
-        struct GracefulStop {};
-        try {
-            for (;;) {
-                m_buffer.write(*this);
-                m_buffer.waitSpaceAvailable(
-                            Stoppable::TestActor<GracefulStop>{m_stoppable},
-                            sharemind::StaticLoopDuration<10>{});
-            }
-        } catch (const GracefulStop &) {}
-    }
-
-public: /* Fields: */
-    RandomEngine m_engine;
-    CircBufferSCSP<void> m_buffer;
-    Stoppable m_stoppable;
-    std::thread m_thread;
-};
-
-extern "C"
-void BufferedRandomEngine_fill_bytes(SharemindRandomEngine* rng_, void* memptr, size_t size) {
-    assert(rng_);
-    assert(memptr);
-
-    auto& rng = RandomBufferAgent::fromWrapper(*rng_);
-    for (;;) {
-        const auto read = rng.m_buffer.read(memptr, size);
-        assert(read <= size);
-        if (read >= size)
-            return;
-        memptr = PotentiallyVoidTypeInfo<void>::ptrAdd(memptr, read);
-        size -= read;
-        rng.m_buffer.waitDataAvailable();
-    }
-}
-
-extern "C"
-void BufferedRandomEngine_free(SharemindRandomEngine* rng_) {
-    assert(rng_);
-    delete &RandomBufferAgent::fromWrapper(*rng_);
-}
-
-} // namespace anonymous
 
 namespace sharemind {
 
-SharemindRandomEngine* make_thread_buffered_random_engine(RandomEngine rng,
-                                                          size_t bufferSize)
+RandomBufferAgent::RandomBufferAgent(
+        std::unique_ptr<RandomEngine> randomEngine,
+        size_t const bufferSize)
+   : m_engine{std::move(randomEngine)}
+   , m_buffer(bufferSize)
+   , m_thread{&RandomBufferAgent::fillerThread, this}
+{}
+
+RandomBufferAgent::~RandomBufferAgent() noexcept {
+    m_stoppable.stop();
+    m_thread.join();
+}
+
+void RandomBufferAgent::fillBytes(void * buffer,
+                                  size_t bufferSize) noexcept
 {
-    return new RandomBufferAgent {std::move (rng), bufferSize};
+    for (;;) {
+        const auto read = m_buffer.read(buffer, bufferSize);
+        assert(read <= bufferSize);
+        if (read >= bufferSize)
+            return;
+        buffer = PotentiallyVoidTypeInfo<void>::ptrAdd(buffer, read);
+        bufferSize -= read;
+        m_buffer.waitDataAvailable();
+    }
+}
+
+namespace {
+
+struct RandomEngineWriter {
+    using Exception = int;
+    size_t operator()(void * buffer, size_t const bufferSize) noexcept {
+        engine.fillBytes(buffer, bufferSize);
+        return bufferSize;
+    }
+    RandomEngine & engine;
+};
+
+} // anonymous namespace
+
+void RandomBufferAgent::fillerThread() noexcept {
+    struct GracefulStop {};
+    try {
+        for (;;) {
+            m_buffer.write(RandomEngineWriter{*m_engine});
+            m_buffer.waitSpaceAvailable(
+                        Stoppable::TestActor<GracefulStop>{m_stoppable},
+                        sharemind::StaticLoopDuration<10>{});
+        }
+    } catch (const GracefulStop &) {}
 }
 
 } /* namespace sharemind { */

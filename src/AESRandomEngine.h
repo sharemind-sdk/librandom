@@ -20,21 +20,39 @@
 #ifndef SHAREMIND_LIBRANDOM_AESRANDOMENGINE_H
 #define SHAREMIND_LIBRANDOM_AESRANDOMENGINE_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
+
 
 namespace sharemind {
 
-size_t AES_random_engine_seed_size() noexcept;
+/** A random engine based on AES in CTR mode. */
+class AesRandomEngine: public RandomEngine {
 
+public: /* Types: */
 
-/**
- * \brief Construct a random engine based on AES in CTR mode.
- * \returns Either a new instance of the engine or a nullptr if the generator is not supported.
- * \throws std::bad_alloc
- */
-SharemindRandomEngine* make_AES_random_engine(
-        const void* memptr_,
-        SharemindRandomEngineCtorError* e);
+    SHAREMIND_DEFINE_EXCEPTION(RandomEngine::Exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+            Exception,
+            InitException,
+            "Failed to initialize AES random engine!");
+
+public: /* Methods: */
+
+    AesRandomEngine(const void * seed);
+
+    ~AesRandomEngine() noexcept override;
+
+    void fillBytes(void * buffer, size_t size) noexcept override;
+
+    static bool supported() noexcept;
+
+    static size_t seedSize() noexcept;
+
+private: /* Fields: */
+
+    void * m_inner;
+
+};
 
 } /* namespace sharemind { */
 

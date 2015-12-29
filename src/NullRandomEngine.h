@@ -20,16 +20,27 @@
 #ifndef SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
 #define SHAREMIND_LIBRANDOM_NULLRANDOMENGINE_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
+#include <cstring>
+
 
 namespace sharemind {
 
-/**
- * \brief Construct a random engine that only generates zeroes.
- * \note This is only useful for debugging.
- * \returns A new instance of the engine.
- */
-SharemindRandomEngine* make_null_random_engine() noexcept;
+class NullRandomEngine: public RandomEngine {
+
+public: /* Methods: */
+
+    inline void fillBytes(void * memptr, size_t numBytes) noexcept
+    { memset(memptr, 0, numBytes); }
+
+    static inline NullRandomEngine & instance() noexcept;
+
+};
+
+inline NullRandomEngine & NullRandomEngine::instance() noexcept {
+    static NullRandomEngine instance;
+    return instance;
+}
 
 } /* namespace sharemind { */
 

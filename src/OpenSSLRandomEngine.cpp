@@ -19,44 +19,31 @@
 
 #include "OpenSSLRandomEngine.h"
 
-#include "RandomEngine.h"
-
 #include <cassert>
-#include <climits>
+#include <limits>
 #include <openssl/rand.h>
-#ifdef SHAREMIND_INSTRUCT_VALGRIND
-#include <valgrind/memcheck.h>
-#endif
-
-namespace /* anonymous */ {
-
-extern "C"
-void OpenSSLRandomEngine_fill_bytes(SharemindRandomEngine *,
-                                    void * memptr,
-                                    size_t size)
-{
-    assert(size <= INT_MAX);
-    #ifndef NDEBUG
-    auto const r =
-    #endif
-        RAND_bytes(static_cast<unsigned char *>(memptr), size);
-    assert(r == 1);
-}
-
-extern "C"
-void OpenSSLRandomEngine_free(SharemindRandomEngine*) { }
-
-static SharemindRandomEngine OpenSSL_random_engine = SharemindRandomEngine {
-    OpenSSLRandomEngine_fill_bytes,
-    OpenSSLRandomEngine_free
-};
-
-} // namespace anonymous
+#include <sharemind/PotentiallyVoidTypeInfo.h>
 
 namespace sharemind {
 
-SharemindRandomEngine* make_OpenSSL_random_engine() noexcept {
-    return &OpenSSL_random_engine;
+void OpenSslRandomEngine::staticFillBytes(void * buffer,
+                                          size_t bufferSize) noexcept
+{
+    static constexpr int const MAX = std::numeric_limits<int>::max();
+    static auto const doFill = [](void * const buffer, size_t const size) {
+        #ifndef NDEBUG
+        auto const r =
+        #endif
+            RAND_bytes(static_cast<unsigned char *>(buffer),
+                       static_cast<int>(size));
+        assert(r == 1);
+    };
+    while (bufferSize > MAX) {
+        doFill(buffer, MAX);
+        bufferSize -= MAX;
+        buffer = ptrAdd(buffer, MAX);
+    }
+    doFill(buffer, bufferSize);
 }
 
 } // namespace sharemind

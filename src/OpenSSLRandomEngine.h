@@ -20,15 +20,21 @@
 #ifndef SHAREMIND_LIBRANDOM_OPENSSLRANDOMENGINE_H
 #define SHAREMIND_LIBRANDOM_OPENSSLRANDOMENGINE_H
 
-#include "librandom.h"
+#include "RandomEngine.h"
+
 
 namespace sharemind {
 
-/**
- * \brief Construct a random engine based on OpenSSL RAND_bytes function.
- * \returns A new instance of the random engine.
- */
-SharemindRandomEngine* make_OpenSSL_random_engine() noexcept;
+class OpenSslRandomEngine: public RandomEngine {
+
+public: /* Methods: */
+
+    void fillBytes(void * buffer, size_t bufferSize) noexcept
+    { staticFillBytes(buffer, bufferSize); }
+
+    static void staticFillBytes(void * memptr, size_t numBytes) noexcept;
+
+};
 
 } /* namespace sharemind { */
 

@@ -22,156 +22,73 @@
 
 #include "librandom.h"
 
-#include <cassert>
 #include <cstdlib>
 #include <sharemind/Exception.h>
 
+
 namespace sharemind {
 
-/*
- * Here we map SharemindRandomEngineCtorError to exceptions:
- */
+class RandomEngine;
 
-SHAREMIND_DEFINE_EXCEPTION(std::exception, RandomCtorError);
-SHAREMIND_DEFINE_EXCEPTION(RandomCtorError, RandomCtorSeedError);
+class RandomEngineFactory {
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorError, RandomCtorGeneratorNotSupported,
-                                     "Unsupported generator");
+public: /* Types: */
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorError, RandomCtorOtherError,
-                                     "Failed to construct the generator");
+    using Configuration = SharemindRandomEngineConf;
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedTooShort,
-                                     "Provided seed is too short");
+    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION(Exception, RandomCtorSeedException);
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedSelfGenerateError,
-                                     "Failed to self-generate a seed");
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                         RandomCtorGeneratorNotSupported,
+                                         "Unsupported generator");
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedNotSupported,
-                                     "Providing a fixed seed is not supported by this generator");
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
+                                         RandomCtorOtherError,
+                                         "Failed to construct the generator");
 
-SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedError, RandomCtorSeedOtherError,
-                                     "Failed to seed the generator");
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedException,
+                                         RandomCtorSeedTooShort,
+                                         "Provided seed is too short");
 
-inline
-void handleSharemindRandomEngineCtorError(SharemindRandomEngineCtorError& e) {
-    switch (e) {
-    case SHAREMIND_RANDOM_CTOR_GENERATOR_NOT_SUPPORTED: throw RandomCtorGeneratorNotSupported {};
-    case SHAREMIND_RANDOM_CTOR_OUT_OF_MEMORY: throw std::bad_alloc {};
-    case SHAREMIND_RANDOM_CTOR_OTHER_ERROR: throw RandomCtorOtherError {};
-    case SHAREMIND_RANDOM_CTOR_SEED_TOO_SHORT: throw RandomCtorSeedTooShort {};
-    case SHAREMIND_RANDOM_CTOR_SEED_SELF_GENERATE_ERROR: throw RandomCtorSeedSelfGenerateError {};
-    case SHAREMIND_RANDOM_CTOR_SEED_NOT_SUPPORTED: throw RandomCtorSeedNotSupported { };
-    case SHAREMIND_RANDOM_CTOR_SEED_OTHER_ERROR: throw RandomCtorSeedOtherError {};
-    default:
-        break;
-    }
-}
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedException,
+                                         RandomCtorSeedSelfGenerateError,
+                                         "Failed to self-generate a seed");
 
-/**
- * \brief Facade for the \a SharemindRandomEngineFactoryFacility
- */
+    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+            RandomCtorSeedException,
+            RandomCtorSeedNotSupported,
+            "Providing a fixed seed is not supported by this generator");
 
-inline
-SharemindRandomEngineConf getDefaultRandomEngineConfiguration(
-        SharemindRandomEngineFactoryFacility* factory) noexcept
-{
-    assert(factory);
-    return factory->get_default_configuration(factory);
-}
-
-inline
-SharemindRandomEngine* makeRandomEngine(
-        SharemindRandomEngineFactoryFacility* factory,
-        SharemindRandomEngineConf conf)
-{
-    assert(factory);
-    auto err = SHAREMIND_RANDOM_CTOR_OK;
-    const auto engine = factory->make_random_engine(factory, conf, &err);
-    handleSharemindRandomEngineCtorError(err);
-    if (!engine)
-        throw std::bad_alloc {};
-
-    return engine;
-}
-
-inline
-SharemindRandomEngine* makeRandomEngineWithSeed(
-        SharemindRandomEngineFactoryFacility* factory,
-        SharemindRandomEngineConf conf,
-        const void* memptr, size_t size)
-{
-    assert(factory);
-    auto err = SHAREMIND_RANDOM_CTOR_OK;
-    const auto engine = factory->make_random_engine_with_seed(
-                factory, conf, memptr, size, &err);
-    handleSharemindRandomEngineCtorError(err);
-    if (!engine)
-        throw std::bad_alloc {};
-
-    return engine;
-}
-
-inline
-void freeRandomEngineFactoryFacility(SharemindRandomEngineFactoryFacility* factory)
-{
-    if (factory)
-        factory->free(factory);
-}
-
-inline
-SharemindRandomEngine* makeRandomEngine(
-        SharemindRandomEngineFactoryFacility* factory)
-{
-    return makeRandomEngine(factory,
-                            getDefaultRandomEngineConfiguration(factory));
-}
-
-inline
-SharemindRandomEngine* makeRandomEngineWithSeed(
-        SharemindRandomEngineFactoryFacility* factory,
-        const void* memptr, size_t size)
-{
-    return makeRandomEngineWithSeed(factory,
-                                    getDefaultRandomEngineConfiguration(factory),
-                                    memptr, size);
-}
-
-/**
- * \brief Thin wrapper around SharemindRandomEngineFactoryFacility indicating
- * this object owns the factory facility. The instances is freed on destruction.
- */
-class RandomEngineFactoryOwner {
 public: /* Methods: */
 
-    explicit RandomEngineFactoryOwner(SharemindRandomEngineFactoryFacility* inner)
-        : m_inner (inner)
-    { }
+    inline RandomEngineFactory(Configuration const & defaultConf)
+        : m_defaultConf(defaultConf)
+    {}
 
-    RandomEngineFactoryOwner(const RandomEngineFactoryOwner&) = delete;
-    RandomEngineFactoryOwner& operator = (const RandomEngineFactoryOwner&) = delete;
-    RandomEngineFactoryOwner(const RandomEngineFactoryOwner&&) = delete;
-    RandomEngineFactoryOwner& operator = (const RandomEngineFactoryOwner&&) = delete;
+    inline Configuration const & defaultConfiguration() const noexcept
+    { return m_defaultConf; }
 
-    inline SharemindRandomEngineFactoryFacility* get() const {
-        return m_inner;
-    }
+    inline RandomEngine * createRandomEngine() const
+    { return createRandomEngine(m_defaultConf); }
 
-    ~RandomEngineFactoryOwner() {
-        freeRandomEngineFactoryFacility(m_inner);
-    }
+    static RandomEngine * createRandomEngine(Configuration const & conf);
+
+    inline RandomEngine * createRandomEngineWithSeed(
+            const void * const seedData,
+            size_t const seedSize) const
+    { return createRandomEngineWithSeed(m_defaultConf, seedData, seedSize); }
+
+    static RandomEngine * createRandomEngineWithSeed(
+            Configuration const & conf,
+            const void * seedData,
+            size_t seedSize);
 
 private: /* Fields: */
-    SharemindRandomEngineFactoryFacility* m_inner;
-};
 
-/**
- * \brief Construct default implementation of SharemindRandomEngineFactoryFacility
- * \return Well formed SharemindRandomEngineFactoryFacility or nullptr if the configuration ill formed.
- * \throws std::bad_alloc
- */
-SharemindRandomEngineFactoryFacility* make_default_random_engine_factory(
-        SharemindRandomEngineConf defaultConf);
+    Configuration const m_defaultConf;
+
+}; /* class RandomEngineFactory { */
 
 } /* namespace sharemind { */
 
