@@ -28,37 +28,29 @@
 
 namespace sharemind {
 
-using Snow2Key = std::array<uint8_t, 32u>;
-using Snow2Iv = std::array<uint32_t, 4u>;
-
 class Snow2RandomEngine: public RandomEngine {
 
 public: /* Types: */
 
-    template <typename Array>
-    struct SizeOfArrayInBytes {
-        static constexpr size_t value = std::tuple_size<Array>::value
-                                        * sizeof(typename Array::value_type);
-        static_assert(sizeof(Array) == value, "");
-    };
-
-public: /* Types: */
-
-    constexpr static size_t const SeedSize =
-            SizeOfArrayInBytes<Snow2Key>::value
-            + SizeOfArrayInBytes<Snow2Iv>::value;
+    constexpr static size_t const SeedSize = 48u;
 
 public: /* Methods: */
 
     explicit Snow2RandomEngine(const void * const seed);
 
-    virtual ~Snow2RandomEngine() noexcept;
-
     void fillBytes(void * buffer, size_t size) noexcept override;
 
 private: /* Fields: */
 
-    void * const m_inner;
+    std::array<uint32_t, 16u> s;
+    uint32_t r1, r2;
+    union {
+        std::array<uint32_t, 16u> keystream;
+        std::array<uint8_t, sizeof(uint32_t) * 16> un_byte_keystream;
+    };
+    static_assert(sizeof(keystream) == 64u, "");
+    static_assert(sizeof(un_byte_keystream) == 64u, "");
+    unsigned haveData = 0u;
 
 };
 

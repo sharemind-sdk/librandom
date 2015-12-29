@@ -256,106 +256,90 @@ static constexpr uint32_t const snow_T3[256u]= {
   0x38f8c8c,0x59f8a1a1, 0x9808989,0x1a170d0d,0x65dabfbf,0xd731e6e6,0x84c64242,0xd0b86868,
  0x82c34141,0x29b09999,0x5a772d2d,0x1e110f0f,0x7bcbb0b0,0xa8fc5454,0x6dd6bbbb,0x2c3a1616};
 
-using namespace sharemind;
+constexpr inline uint32_t ainv_mul(uint32_t const v) noexcept
+{ return (v >> 8) ^ snow_alphainv_mul[v & 0xff]; }
 
-struct Inner {
+constexpr inline uint32_t a_mul(uint32_t const v) noexcept
+{ return (v << 8) ^ snow_alpha_mul[v >> 24]; }
 
-/* Methods: */
-
-    inline Inner(const void * const memptr) noexcept;
-
-    inline void snow_loadkey_fast_p_256(Snow2Iv const & iv,
-                                        Snow2Key const & key) noexcept;
-
-    inline void snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept;
-
-    inline void snow_keystream_fast_p() noexcept;
-
-    static constexpr inline uint32_t ainv_mul(uint32_t const v) noexcept
-    { return (v >> 8) ^ snow_alphainv_mul[v & 0xff]; }
-
-    static constexpr inline uint32_t a_mul(uint32_t const v) noexcept
-    { return (v << 8) ^ snow_alpha_mul[v >> 24]; }
-
-    inline void newRs(unsigned const sIndex) noexcept {
-        assert(sIndex < 16u);
-        uint32_t const fsmtmp = r2 + s[sIndex];
-        r2 = snow_T0[r1 & 0xff]
-           ^ snow_T1[(r1 >> 8) & 0xff]
-           ^ snow_T2[(r1 >> 8) & 0xff]
-           ^ snow_T3[r1 >> 24];
-        r1 = fsmtmp;
-    }
-
-    template <unsigned offset>
-    static inline uint32_t keyShift(Snow2Key const & key) noexcept {
-        static_assert(
-                offset < Snow2RandomEngine::SizeOfArrayInBytes<Snow2Key>::value,
-                "");
-        static_assert((offset % 4u) == 0u, "");
-        return (uint32_t{key[offset     ]} << 24) |
-               (uint32_t{key[offset + 1u]} << 16) |
-               (uint32_t{key[offset + 2u]} <<  8) |
-                uint32_t{key[offset + 3u]};
-    }
-
-    inline void fillBytes(void * memptr, size_t size) noexcept;
-
-/* Fields: */
-
-    std::array<uint32_t, 16u> s;
-    uint32_t r1, r2;
-    union {
-        std::array<uint32_t, 16u> keystream;
-        std::array<uint8_t, sizeof(uint32_t) * 16> un_byte_keystream;
-    };
-    static_assert(sizeof(keystream) == 64u, "");
-    static_assert(sizeof(un_byte_keystream) == 64u, "");
-    unsigned haveData = 0u;
-
-};
-
-/*
- * Function:  snow_loadkey_fast
- *
- * Synopsis:
- *   Loads the key material and performs the initial mixing.
- *
- * Returns: void
- *
- * Assumptions:
- *   keysize is either 128 or 256.
- *   key is of proper length, for keysize=128, key is of lenght 16 bytes
- *      and for keysize=256, key is of length 32 bytes.
- *   key is given in big endian format,
- *   For 128 bit key:
- *        key[0]-> msb of k_3
- *         ...
- *        key[3]-> lsb of k_3
- *         ...
- *        key[12]-> msb of k_0
- *         ...
- *        key[15]-> lsb of k_0
- *
- *   For 256 bit key:
- *        key[0]-> msb of k_7
- *          ...
- *        key[3]-> lsb of k_7
- *          ...
- *        key[28]-> msb of k_0
- *          ...
- *        key[31]-> lsb of k_0
- *
- * Authors:
- * Patrik Ekdahl & Thomas Johansson
- * Dept. of Information Technology
- * P.O. Box 118
- * SE-221 00 Lund, Sweden,
- * email: {patrik,thomas}@it.lth.se
- */
-inline void Inner::snow_loadkey_fast_p_256(Snow2Iv const & iv,
-                                           Snow2Key const & key) noexcept
+template <unsigned offset, size_t keySizeInBytes>
+constexpr inline uint32_t keyShift(
+        std::array<uint8_t, keySizeInBytes> const & key) noexcept
 {
+    static_assert(offset <= keySizeInBytes - 4u, "");
+    static_assert((offset % 4u) == 0u, "");
+    return (uint32_t{key[offset     ]} << 24) |
+           (uint32_t{key[offset + 1u]} << 16) |
+           (uint32_t{key[offset + 2u]} <<  8) |
+            uint32_t{key[offset + 3u]};
+}
+
+} // namespace anonymous
+
+namespace sharemind {
+
+#define NEWRS(sIndex) \
+    do { \
+        assert((sIndex) < 16u); \
+        uint32_t const fsmtmp = r2 + s[((sIndex) + 5u) % 16u]; \
+        r2 = snow_T0[r1 & 0xff] \
+           ^ snow_T1[(r1 >> 8) & 0xff] \
+           ^ snow_T2[(r1 >> 8) & 0xff] \
+           ^ snow_T3[r1 >> 24]; \
+        r1 = fsmtmp; \
+    } while(false)
+
+Snow2RandomEngine::Snow2RandomEngine(const void * const seed) {
+    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
+    VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Snow2RandomEngine));
+    #endif
+
+    std::array<uint8_t, 32u> key; // We use a 256-bit key
+    std::array<uint32_t, 4u> iv;
+    static_assert(SeedSize == sizeof(key) + sizeof(iv), "");
+
+    memcpy(key.data(), seed, key.size());
+    memcpy(iv.data(), ptrAdd(seed, key.size()), iv.size());
+
+    /*
+     * Function:  snow_loadkey_fast
+     *
+     * Synopsis:
+     *   Loads the key material and performs the initial mixing.
+     *
+     * Returns: void
+     *
+     * Assumptions:
+     *   keysize is either 128 or 256.
+     *   key is of proper length, for keysize=128, key is of lenght 16 bytes
+     *      and for keysize=256, key is of length 32 bytes.
+     *   key is given in big endian format,
+     *   For 128 bit key:
+     *        key[0]-> msb of k_3
+     *         ...
+     *        key[3]-> lsb of k_3
+     *         ...
+     *        key[12]-> msb of k_0
+     *         ...
+     *        key[15]-> lsb of k_0
+     *
+     *   For 256 bit key:
+     *        key[0]-> msb of k_7
+     *          ...
+     *        key[3]-> lsb of k_7
+     *          ...
+     *        key[28]-> msb of k_0
+     *          ...
+     *        key[31]-> lsb of k_0
+     *
+     * Authors:
+     * Patrik Ekdahl & Thomas Johansson
+     * Dept. of Information Technology
+     * P.O. Box 118
+     * SE-221 00 Lund, Sweden,
+     * email: {patrik,thomas}@it.lth.se
+     */
+
     s[15u] = keyShift<0u>(key);
     s[14u] = keyShift<4u>(key);
     s[13u] = keyShift<8u>(key);
@@ -390,23 +374,7 @@ inline void Inner::snow_loadkey_fast_p_256(Snow2Iv const & iv,
     s[ 1u] = ~s[13u];
     s[ 0u] = ~s[12u];
 #endif
-    return snow_loadkey_fast_p_common(iv);
-}
 
-inline Inner::Inner(const void * const memptr) noexcept {
-    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-    VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Inner));
-    #endif
-
-    Snow2Key snowkey;
-    Snow2Iv iv;
-
-    memcpy(snowkey.data(), memptr, snowkey.size());
-    memcpy(iv.data(), ptrAdd(memptr, snowkey.size()), iv.size());
-    snow_loadkey_fast_p_256(iv, snowkey);
-}
-
-inline void Inner::snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept {
     /* XOR IV values */
     s[15u] ^= iv[0u];
     s[12u] ^= iv[1u];
@@ -424,41 +392,45 @@ inline void Inner::snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept {
                  ^ ainv_mul(s[(i + 11u) % 16u])
                  ^ (r1 + s[(i + 15u) % 16u])
                  ^ r2;
-            newRs((i + 5u) % 16u);
+            NEWRS(i);
         }
     }
 }
 
-/*
- * Function: snow_keystream_fast
- *
- * Synopsis:
- *   Clocks the cipher 16 times and returns 16 words of keystream symbols
- *   in keystream.
- *
- * Returns: void
- *
- * Authors:
- * Patrik Ekdahl & Thomas Johansson
- * Dept. of Information Technology
- * P.O. Box 118
- * SE-221 00 Lund, Sweden,
- * email: {patrik,thomas}@it.lth.se
- *
- */
-inline void Inner::snow_keystream_fast_p() noexcept {
-    for (unsigned i = 0u; i < 16u; i++) {
-        s[i] = a_mul(s[i]) ^ s[(i + 2u) % 16u] ^ ainv_mul(s[(i + 11u) % 16u]);
-        newRs((i + 5u) % 16u);
-        keystream[i] = (r1 + s[i]) ^ r2 ^ s[(i + 1u) % 16u];
-    }
-    haveData = sizeof(keystream);
-}
-
-void Inner::fillBytes(void * memptr, size_t size) noexcept {
+void Snow2RandomEngine::fillBytes(void * buffer, size_t size) noexcept {
     if (size <= 0u)
         return;
-    assert(memptr);
+
+    /*
+     * Function: snow_keystream_fast
+     *
+     * Synopsis:
+     *   Clocks the cipher 16 times and returns 16 words of keystream symbols
+     *   in keystream.
+     *
+     * Returns: void
+     *
+     * Authors:
+     * Patrik Ekdahl & Thomas Johansson
+     * Dept. of Information Technology
+     * P.O. Box 118
+     * SE-221 00 Lund, Sweden,
+     * email: {patrik,thomas}@it.lth.se
+     *
+     */
+    #define snow_keystream_fast_p() \
+        do { \
+            for (unsigned i = 0u; i < 16u; i++) { \
+                s[i] = a_mul(s[i]) \
+                       ^ s[(i + 2u) % 16u] \
+                       ^ ainv_mul(s[(i + 11u) % 16u]); \
+                NEWRS(i); \
+                keystream[i] = (r1 + s[i]) ^ r2 ^ s[(i + 1u) % 16u]; \
+            } \
+            haveData = sizeof(keystream); \
+        } while(false)
+
+    assert(buffer);
     static constexpr size_t const maxBytes = sizeof(un_byte_keystream);
     assert(haveData <= maxBytes);
 
@@ -466,12 +438,12 @@ void Inner::fillBytes(void * memptr, size_t size) noexcept {
     if (haveData < maxBytes) {
         auto const * const readPtr = &un_byte_keystream[maxBytes - haveData];
         if (size <= haveData) {
-            memcpy(memptr, readPtr, size);
+            memcpy(buffer, readPtr, size);
             haveData -= size;
             return;
         }
-        memcpy(memptr, readPtr, haveData);
-        memptr = ptrAdd(memptr, haveData);
+        memcpy(buffer, readPtr, haveData);
+        buffer = ptrAdd(buffer, haveData);
         size -= haveData;
         snow_keystream_fast_p();
     }
@@ -479,30 +451,17 @@ void Inner::fillBytes(void * memptr, size_t size) noexcept {
 
     // Fill big chunks (except last one it that one is big as well):
     while (size > maxBytes) {
-        memcpy(memptr, un_byte_keystream.data(), maxBytes);
-        memptr = ptrAdd(memptr, maxBytes);
+        memcpy(buffer, un_byte_keystream.data(), maxBytes);
+        buffer = ptrAdd(buffer, maxBytes);
         size -= maxBytes;
         snow_keystream_fast_p();
         assert(haveData == maxBytes);
     }
+    #undef snow_keystream_fast_p
 
     // Fill the rest:
-    memcpy(memptr, un_byte_keystream.data(), size);
+    memcpy(buffer, un_byte_keystream.data(), size);
     haveData = maxBytes - size;
 }
-
-} // namespace anonymous
-
-namespace sharemind {
-
-Snow2RandomEngine::Snow2RandomEngine(const void * const memptr)
-    : m_inner{new Inner{memptr}}
-{}
-
-Snow2RandomEngine::~Snow2RandomEngine() noexcept
-{ delete static_cast<Inner *>(m_inner); }
-
-void Snow2RandomEngine::fillBytes(void * buffer, size_t size) noexcept
-{ return static_cast<Inner *>(m_inner)->fillBytes(buffer, size); }
 
 } // namespace sharemind {
