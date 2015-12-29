@@ -30,11 +30,11 @@ namespace /* anonymous */ {
  * Initialize openssl and set locking callback.
  * This is required to make OpenSSLRandomEngine thread safe.
  */
-class OpenSSLInit {
+class OpenSslInit {
 
 private: /* Methods: */
 
-    OpenSSLInit() {
+    OpenSslInit() {
         SSL_library_init();
         if (size_t num_locks = CRYPTO_num_locks()) {
             m_mutexes.reserve(num_locks);
@@ -45,7 +45,7 @@ private: /* Methods: */
         }
     }
 
-    ~OpenSSLInit() {
+    ~OpenSslInit() {
         EVP_cleanup();
         // SSL_COMP_free_compression_methods();
         CRYPTO_cleanup_all_ex_data();
@@ -69,11 +69,11 @@ private: /* Methods: */
 
 private: /* Fields: */
 
-    static OpenSSLInit                       m_instance;
+    static OpenSslInit                       m_instance;
     std::vector<std::unique_ptr<std::mutex>> m_mutexes;
 
 }; /* class OpenSSLInit { */
 
-OpenSSLInit OpenSSLInit::m_instance;
+OpenSslInit OpenSslInit::m_instance;
 
 } /* namespace anonymous { */

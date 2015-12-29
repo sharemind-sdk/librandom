@@ -19,14 +19,14 @@
 
 #include "RandomEngineFactory.h"
 
-#include "AESRandomEngine.h"
+#include "AesRandomEngine.h"
 #include "ChaCha20RandomEngine.h"
 #include "CryptographicRandom.h"
 #include "NullRandomEngine.h"
-#include "OpenSSLRandomEngine.h"
+#include "OpenSslRandomEngine.h"
 #include "RandomBufferAgent.h"
 #include "RandomEngine.h"
-#include "SNOW2RandomEngine.h"
+#include "Snow2RandomEngine.h"
 
 #include <exception>
 #include <memory>

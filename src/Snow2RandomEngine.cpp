@@ -17,7 +17,7 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include "SNOW2RandomEngine.h"
+#include "Snow2RandomEngine.h"
 
 #include "RandomEngine.h"
 

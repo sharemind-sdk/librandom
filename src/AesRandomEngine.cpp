@@ -17,7 +17,7 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include "AESRandomEngine.h"
+#include "AesRandomEngine.h"
 
 #include <cassert>
 #include <cstdint>

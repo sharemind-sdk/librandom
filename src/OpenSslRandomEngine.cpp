@@ -17,7 +17,7 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#include "OpenSSLRandomEngine.h"
+#include "OpenSslRandomEngine.h"
 
 #include <cassert>
 #include <limits>
