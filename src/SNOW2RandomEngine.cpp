@@ -264,47 +264,8 @@ struct Inner {
 
     inline Inner(const void * const memptr) noexcept;
 
-    /*
-     * Function:  snow_loadkey_fast
-     *
-     * Synopsis:
-     *   Loads the key material and performs the initial mixing.
-     *
-     * Returns: void
-     *
-     * Assumptions:
-     *   keysize is either 128 or 256.
-     *   key is of proper length, for keysize=128, key is of lenght 16 bytes
-     *      and for keysize=256, key is of length 32 bytes.
-     *   key is given in big endian format,
-     *   For 128 bit key:
-     *        key[0]-> msb of k_3
-     *         ...
-     *        key[3]-> lsb of k_3
-     *         ...
-     *        key[12]-> msb of k_0
-     *         ...
-     *        key[15]-> lsb of k_0
-     *
-     *   For 256 bit key:
-     *        key[0]-> msb of k_7
-     *          ...
-     *        key[3]-> lsb of k_7
-     *          ...
-     *        key[28]-> msb of k_0
-     *          ...
-     *        key[31]-> lsb of k_0
-     *
-     * Authors:
-     * Patrik Ekdahl & Thomas Johansson
-     * Dept. of Information Technology
-     * P.O. Box 118
-     * SE-221 00 Lund, Sweden,
-     * email: {patrik,thomas}@it.lth.se
-     */
-    template <uint32_t KEYSIZE>
-    inline void snow_loadkey_fast_p(Snow2Iv const & iv,
-                                    Snow2Key const & key) noexcept;
+    inline void snow_loadkey_fast_p_256(Snow2Iv const & iv,
+                                        Snow2Key const & key) noexcept;
 
     inline void snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept;
 
@@ -354,33 +315,46 @@ struct Inner {
 
 };
 
-template <>
-inline void Inner::snow_loadkey_fast_p<128u>(Snow2Iv const & iv,
-                                             Snow2Key const & key) noexcept
-{
-    s[15u] = keyShift<0u>(key);
-    s[14u] = keyShift<4u>(key);
-    s[13u] = keyShift<8u>(key);
-    s[12u] = keyShift<12u>(key);
-    s[11u] = ~s[15u]; /* bitwise inverse */
-    s[10u] = ~s[14u];
-    s[ 9u] = ~s[13u];
-    s[ 8u] = ~s[12u];
-    s[ 7u] =  s[15u]; /* just copy */
-    s[ 6u] =  s[14u];
-    s[ 5u] =  s[13u];
-    s[ 4u] =  s[12u];
-    s[ 3u] = ~s[15u]; /* bitwise inverse */
-    s[ 2u] = ~s[14u];
-    s[ 1u] = ~s[13u];
-    s[ 0u] = ~s[12u];
-    return snow_loadkey_fast_p_common(iv);
-}
-
-
-template <>
-inline void Inner::snow_loadkey_fast_p<256u>(Snow2Iv const & iv,
-                                             Snow2Key const & key) noexcept
+/*
+ * Function:  snow_loadkey_fast
+ *
+ * Synopsis:
+ *   Loads the key material and performs the initial mixing.
+ *
+ * Returns: void
+ *
+ * Assumptions:
+ *   keysize is either 128 or 256.
+ *   key is of proper length, for keysize=128, key is of lenght 16 bytes
+ *      and for keysize=256, key is of length 32 bytes.
+ *   key is given in big endian format,
+ *   For 128 bit key:
+ *        key[0]-> msb of k_3
+ *         ...
+ *        key[3]-> lsb of k_3
+ *         ...
+ *        key[12]-> msb of k_0
+ *         ...
+ *        key[15]-> lsb of k_0
+ *
+ *   For 256 bit key:
+ *        key[0]-> msb of k_7
+ *          ...
+ *        key[3]-> lsb of k_7
+ *          ...
+ *        key[28]-> msb of k_0
+ *          ...
+ *        key[31]-> lsb of k_0
+ *
+ * Authors:
+ * Patrik Ekdahl & Thomas Johansson
+ * Dept. of Information Technology
+ * P.O. Box 118
+ * SE-221 00 Lund, Sweden,
+ * email: {patrik,thomas}@it.lth.se
+ */
+inline void Inner::snow_loadkey_fast_p_256(Snow2Iv const & iv,
+                                           Snow2Key const & key) noexcept
 {
     s[15u] = keyShift<0u>(key);
     s[14u] = keyShift<4u>(key);
@@ -398,6 +372,24 @@ inline void Inner::snow_loadkey_fast_p<256u>(Snow2Iv const & iv,
     s[ 2u] = ~s[10u];
     s[ 1u] = ~s[ 9u];
     s[ 0u] = ~s[ 8u];
+#if 0 // For 128-bit keys we would instead do this:
+    s[15u] = keyShift<0u>(key);
+    s[14u] = keyShift<4u>(key);
+    s[13u] = keyShift<8u>(key);
+    s[12u] = keyShift<12u>(key);
+    s[11u] = ~s[15u]; /* bitwise inverse */
+    s[10u] = ~s[14u];
+    s[ 9u] = ~s[13u];
+    s[ 8u] = ~s[12u];
+    s[ 7u] =  s[15u]; /* just copy */
+    s[ 6u] =  s[14u];
+    s[ 5u] =  s[13u];
+    s[ 4u] =  s[12u];
+    s[ 3u] = ~s[15u]; /* bitwise inverse */
+    s[ 2u] = ~s[14u];
+    s[ 1u] = ~s[13u];
+    s[ 0u] = ~s[12u];
+#endif
     return snow_loadkey_fast_p_common(iv);
 }
 
@@ -411,7 +403,7 @@ inline Inner::Inner(const void * const memptr) noexcept {
 
     memcpy(snowkey.data(), memptr, snowkey.size());
     memcpy(iv.data(), ptrAdd(memptr, snowkey.size()), iv.size());
-    snow_loadkey_fast_p<256u>(iv, snowkey);
+    snow_loadkey_fast_p_256(iv, snowkey);
 }
 
 inline void Inner::snow_loadkey_fast_p_common(Snow2Iv const & iv) noexcept {
