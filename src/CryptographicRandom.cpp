@@ -17,6 +17,14 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
+/*
+  See also:
+    * drivers/char/random.c in the Linux kernel
+    * `man 4 urandom`
+    * `man 2 getrandom`
+    * http://www.2uo.de/myths-about-urandom/
+*/
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -45,8 +53,10 @@
     #warning No getrandom(2) detected!
     #warning Falling back to slow alternative of reading from /dev/u?random.
     #include <fcntl.h>
+    #include <linux/random.h>
     #include <mutex>
     #include <sharemind/abort.h>
+    #include <sys/ioctl.h>
     #include <sys/stat.h>
     #include <sys/types.h>
     #include <unistd.h>
@@ -54,6 +64,29 @@
 
 #ifndef SHAREMIND_HAVE_LINUX_GETRANDOM
 namespace {
+
+/* Always wait for at least 256 bits of entropy which is required for the Linux
+   kernel to initialize its entropy pool for the CSPRNG used for both
+   /dev/random and /dev/urandom. */
+void waitForEntropyInitialization(int const fd) {
+    // Ensure this is executed only once:
+    static bool entropyPoolInitialized = false;
+    if (!entropyPoolInitialized) {
+        int estimatedEntropyBits = 0;
+        for (;;) {
+            /* According to `man 4 urandom` the size returned is the same as
+               from /proc/sys/kernel/random/entropy_avail which is the number of
+               estimated BITS (!!!) of entropy. */
+            if (ioctl(fd, RNDGETENTCNT, &estimatedEntropyBits) != 0)
+                SHAREMIND_ABORT("ioctl(RNDGETENTCNT) failed with errno = %d!\n",
+                                errno);
+            if (estimatedEntropyBits >= 256)
+                break;
+            sleep(1u);
+        }
+        entropyPoolInitialized = true;
+    }
+}
 
 #define SHAREMIND_LIBRANDOM_CRF(classname,filename) \
     template <int extraFlags = 0> \
@@ -65,6 +98,7 @@ namespace {
         { \
             if (m_fd == -1) \
                 SHAREMIND_ABORT("Unable to open " filename "!"); \
+            waitForEntropyInitialization(m_fd); \
         } \
         ssize_t read(void * const buf, size_t const bufSize) noexcept { \
             std::lock_guard<std::mutex> const guard{m_mutex}; \
