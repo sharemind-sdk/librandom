@@ -42,35 +42,6 @@ using namespace sharemind;
 
 namespace /* anonymous */ {
 
-class SeedRng {
-
-public: /* Methods: */
-
-    inline SeedRng()
-        : m_inner{
-            []{
-                constexpr size_t const seedSize = Snow2RandomEngine::SeedSize;
-                assert(seedSize <= SEED_TEMP_BUFFER_SIZE);
-                unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
-                cryptographicRandom(tempBuffer, seedSize);
-                return new Snow2RandomEngine{tempBuffer};
-            }()}
-    {}
-
-    void generateSeed(void * const buf, size_t const bufSize) {
-        std::lock_guard<std::mutex> const guard{m_mutex};
-        m_inner->fillBytes(buf, bufSize);
-    }
-
-private: /* Fields: */
-
-    std::mutex m_mutex;
-    std::unique_ptr<RandomEngine> m_inner;
-
-};
-
-static SeedRng seedRng;
-
 inline SharemindRandomEngineCtorError setErrorFlag(
         SharemindRandomEngineCtorError * ptr,
         SharemindRandomEngineCtorError e)
@@ -102,7 +73,7 @@ RandomEngine * RandomEngineFactory::createRandomEngine(
     VALGRIND_MAKE_MEM_DEFINED(tempBuffer, sizeof(tempBuffer));
     #endif
 
-    seedRng.generateSeed(tempBuffer, seedSize);
+    cryptographicURandom(tempBuffer, seedSize);
 
     return createRandomEngineWithSeed(conf, tempBuffer, seedSize);
 }
