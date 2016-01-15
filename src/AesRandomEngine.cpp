@@ -217,7 +217,7 @@ bool AesRandomEngine::supported() noexcept {
 }
 
 size_t AesRandomEngine::seedSize() noexcept {
-    if (!supported())
+    if (!aes_cipher())
         return 0;
 
     return EVP_CIPHER_key_length(aes_cipher()) + EVP_CIPHER_iv_length(aes_cipher());
