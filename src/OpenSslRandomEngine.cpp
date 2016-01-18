@@ -30,11 +30,11 @@ void OpenSslRandomEngine::staticFillBytes(void * buffer,
                                           size_t bufferSize) noexcept
 {
     static constexpr int const MAX = std::numeric_limits<int>::max();
-    static auto const doFill = [](void * const buffer, size_t const size) {
+    static auto const doFill = [](void * const buf, size_t const size) {
         #ifndef NDEBUG
         auto const r =
         #endif
-            RAND_bytes(static_cast<unsigned char *>(buffer),
+            RAND_bytes(static_cast<unsigned char *>(buf),
                        static_cast<int>(size));
         assert(r == 1);
     };
