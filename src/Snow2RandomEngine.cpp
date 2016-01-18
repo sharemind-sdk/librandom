@@ -300,7 +300,7 @@ Snow2RandomEngine::Snow2RandomEngine(const void * const seed) {
     static_assert(SeedSize == sizeof(key) + sizeof(iv), "");
 
     memcpy(key.data(), seed, key.size());
-    memcpy(iv.data(), ptrAdd(seed, key.size()), iv.size());
+    memcpy(iv.data(), ptrAdd(seed, key.size()), sizeof(iv));
 
     /*
      * Function:  snow_loadkey_fast
