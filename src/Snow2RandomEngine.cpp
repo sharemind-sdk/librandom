@@ -298,8 +298,7 @@ Snow2RandomEngine::Snow2RandomEngine(const void * const seed) {
     std::array<uint8_t, 32u> key; // We use a 256-bit key
     std::array<uint32_t, 4u> iv;
     static_assert(SeedSize == sizeof(key) + sizeof(iv), "");
-
-    memcpy(key.data(), seed, key.size());
+    memcpy(key.data(), seed, sizeof(key));
     memcpy(iv.data(), ptrAdd(seed, key.size()), sizeof(iv));
 
     /*
