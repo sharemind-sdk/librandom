@@ -36,7 +36,7 @@ private: /* Methods: */
 
     OpenSslInit() {
         SSL_library_init();
-        if (size_t num_locks = CRYPTO_num_locks()) {
+        if (size_t num_locks = static_cast<size_t>(CRYPTO_num_locks())) {
             m_mutexes.reserve(num_locks);
             do {
                 m_mutexes.emplace_back(new std::mutex);
@@ -58,7 +58,7 @@ private: /* Methods: */
     {
         assert(n >= 0);
         assert(static_cast<unsigned>(n) < m_instance.m_mutexes.size());
-        if (const auto & mutex = m_instance.m_mutexes[n]) {
+        if (const auto & mutex = m_instance.m_mutexes[static_cast<size_t>(n)]) {
             if (mode & CRYPTO_LOCK) {
                 mutex->lock();
             } else {
