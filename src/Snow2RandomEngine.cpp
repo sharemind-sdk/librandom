@@ -24,6 +24,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
 #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
 #include <valgrind/memcheck.h>
@@ -461,7 +462,8 @@ void Snow2RandomEngine::fillBytes(void * buffer, size_t size) noexcept {
 
     // Fill the rest:
     memcpy(buffer, un_byte_keystream.data(), size);
-    haveData = maxBytes - size;
+    static_assert(maxBytes <= std::numeric_limits<unsigned>::max(), "");
+    haveData = static_cast<unsigned>(maxBytes - size);
 }
 
 } // namespace sharemind {
