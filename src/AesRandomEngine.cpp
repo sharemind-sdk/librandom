@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <openssl/evp.h>
 #include <sharemind/abort.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
@@ -120,7 +121,12 @@ void Inner::aes_reseed_inner() noexcept {
     }
 
     int bytes_written = 0;
-    if (!EVP_EncryptUpdate(&m_ctx_outer, &seed[0], &bytes_written, plaintext, plaintext_size))
+    assert(plaintext_size <= std::numeric_limits<int>::max());
+    if (!EVP_EncryptUpdate(&m_ctx_outer,
+                           &seed[0],
+                           &bytes_written,
+                           plaintext,
+                           static_cast<int>(plaintext_size)))
         SHAREMIND_ABORT("aes_reseed_inner: Encryption failed!");
 
     assert(bytes_written > 0
@@ -213,7 +219,8 @@ size_t AesRandomEngine::seedSize() noexcept {
     if (!aes_cipher())
         return 0;
 
-    return EVP_CIPHER_key_length(aes_cipher()) + EVP_CIPHER_iv_length(aes_cipher());
+    return static_cast<size_t>(EVP_CIPHER_key_length(aes_cipher()))
+           + static_cast<size_t>(EVP_CIPHER_iv_length(aes_cipher()));
 }
 
 }
