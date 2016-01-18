@@ -42,11 +42,6 @@ using namespace sharemind;
 
 namespace /* anonymous */ {
 
-inline SharemindRandomEngineCtorError setErrorFlag(
-        SharemindRandomEngineCtorError * ptr,
-        SharemindRandomEngineCtorError e)
-{ return ptr ? (*ptr = e) : e; }
-
 inline size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
     case SHAREMIND_RANDOM_SNOW2:    return Snow2RandomEngine::SeedSize;

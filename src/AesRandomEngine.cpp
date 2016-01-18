@@ -55,13 +55,6 @@ inline const EVP_CIPHER* aes_cipher() noexcept {
     return EVP_aes_128_ctr();
 }
 
-inline void setErrorFlag(SharemindRandomEngineCtorError* ptr,
-                         SharemindRandomEngineCtorError e)
-{
-    if (ptr)
-        *ptr = e;
-}
-
 struct Inner {
 
     inline Inner(const void * memptr_) noexcept
