@@ -34,16 +34,12 @@ extern "C" void SharemindRandomEngine_fillBytes(SharemindRandomEngine * rng,
                                                 size_t size) noexcept
         SHAREMIND_VISIBILITY_HIDDEN;
 
-extern "C" void SharemindRandomEngine_free(SharemindRandomEngine * rng) noexcept
-        SHAREMIND_VISIBILITY_HIDDEN;
-
 } // anonymous namespace
 
 struct ScopedEngine: SharemindRandomEngine {
 
     ScopedEngine(RandomEngine * const engine)
-        : SharemindRandomEngine{&SharemindRandomEngine_fillBytes,
-                                &SharemindRandomEngine_free}
+        : SharemindRandomEngine{&SharemindRandomEngine_fillBytes}
         , m_engine{(assert(engine), engine)}
     {}
 
@@ -63,9 +59,6 @@ extern "C" void SharemindRandomEngine_fillBytes(SharemindRandomEngine * rng,
                                                 void * memptr,
                                                 size_t size) noexcept
 { fromWrapper((assert(rng), *rng)).fillBytes(memptr, size); }
-
-extern "C" void SharemindRandomEngine_free(SharemindRandomEngine * rng) noexcept
-{ delete &fromWrapper((assert(rng), *rng)); }
 
 inline RandomFacility & fromWrapper(SharemindRandomFacility & base) noexcept
 { return static_cast<RandomFacility &>(base); }

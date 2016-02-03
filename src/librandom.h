@@ -175,13 +175,6 @@ struct SharemindRandomEngine_ {
                               void * memptr,
                               size_t size);
 
-    /**
-     * \param[in] rng pointer to this RNG engine.
-     * \post The RNG is no longer valid and any subsequent operations on it will
-     *       have undefined behaviour.
-     * \brief free the RNG.
-     */
-    void (* const free)(SharemindRandomEngine * rng);
 };
 
 
