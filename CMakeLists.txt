@@ -22,6 +22,7 @@ PROJECT(SharemindLibRandom CXX)
 
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/config.local" OPTIONAL)
 INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
+INCLUDE(CheckCXXSourceCompiles)
 
 SET(SHAREMIND_LIBRANDOM_VERSION "0.2.0")
 
@@ -30,6 +31,30 @@ FIND_PACKAGE(OpenSSL REQUIRED)
 FIND_PACKAGE(SharemindCHeaders REQUIRED)
 FIND_PACKAGE(SharemindCxxHeaders REQUIRED)
 FIND_PACKAGE(SharemindLibMutexes REQUIRED)
+
+# Check if we have SSE2 support via emmintrin.h header
+Check_CXX_Source_Compiles(
+"
+#include <emmintrin.h>
+#if !defined(__SSE__)
+#error
+#endif
+#if !defined(__SSE2__)
+#error
+#endif
+int main () {
+    __m128i x, y, z;
+    x = _mm_set_epi32(0, 1, 2, 3);
+    y = z = _mm_set1_epi32(0);
+    x = _mm_or_si128(y, z);
+    x = _mm_slli_epi32(x, 1);
+    x = _mm_srli_epi32(x, 1);
+    x = _mm_add_epi32(y, z);
+    x = _mm_xor_si128(y, z);
+    return 0;
+}
+"
+HAVE_EMMINTRIN_SSE2)
 
 IF(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Release"))
     FIND_PATH(VALGRIND_INCLUDE_DIR "valgrind/memcheck.h"
@@ -71,6 +96,10 @@ LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
 IF(VALGRIND_INCLUDE_DIR)
     LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
          "-DSHAREMIND_LIBRANDOM_HAVE_VALGRIND")
+ENDIF()
+IF(HAVE_EMMINTRIN_SSE2)
+    LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
+         "-DSHAREMIND_HAVE_EMMINTRIN_SSE2")
 ENDIF()
 LIST(REMOVE_DUPLICATES SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS)
 
@@ -117,6 +146,21 @@ FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_INFILES
      "${CMAKE_CURRENT_SOURCE_DIR}/*.in")
 ADD_CUSTOM_TARGET("include_SHAREMIND_LIBRANDOM_INFILES_in_IDE"
                   SOURCES ${SHAREMIND_LIBRANDOM_INFILES})
+
+# Tests:
+ENABLE_TESTING()
+ADD_CUSTOM_TARGET(check COMMAND "${CMAKE_CTEST_COMMAND}")
+FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_TESTS
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
+ADD_CUSTOM_TARGET("include_SHAREMIND_LIBRANDOM_TESTS_in_IDE"
+    SOURCES ${SHAREMIND_LIBRANDOM_TESTS})
+FOREACH(test IN LISTS SHAREMIND_LIBRANDOM_TESTS)
+    GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
+    ADD_EXECUTABLE("testImpl_${testName}" EXCLUDE_FROM_ALL "${test}")
+    TARGET_LINK_LIBRARIES("testImpl_${testName}" librandom)
+    ADD_DEPENDENCIES(check "testImpl_${testName}")
+    ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
+ENDFOREACH()
 
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/SharemindLibRandomConfig.cmake.in"

@@ -35,6 +35,11 @@ private: /* Constants: */
     static constexpr size_t const CHACHA20_BLOCK_SIZE = 64u;
     static constexpr size_t const CHACHA20_NONCE_SIZE = 8u;
 
+
+    static constexpr size_t const CHACHA20_PARALLEL_BLOCK_COUNT = 4u;
+    static constexpr size_t const CHACHA20_BUFFER_SIZE =
+            CHACHA20_PARALLEL_BLOCK_COUNT * CHACHA20_BLOCK_SIZE;
+
 public: /* Constants: */
 
     static constexpr size_t const SeedSize =
@@ -51,11 +56,18 @@ private: /* Fields: */
     /// Internal state of the ChaCha20 cipher:
     uint32_t m_state[16u];
 
-    /// Number of bytes that have been consumed from the block:
-    size_t m_block_consumed = CHACHA20_BLOCK_SIZE;
+    /**
+     * \brief Number of bytes that have been consumed from the buffer.
+     * \note Initially all bytes have been consumed from the uninitialized
+     *  buffer.
+     */
+    size_t m_consumed_byte_count = CHACHA20_BUFFER_SIZE;
 
-    /// A single generated block:
-    uint8_t m_block[CHACHA20_BLOCK_SIZE];
+    /**
+     * \brief A buffer of generated blocks.
+     * \note Currently 4 blocks are generated at a time.
+     */
+    uint8_t m_block[CHACHA20_BUFFER_SIZE];
 
 };
 
