@@ -48,9 +48,6 @@ typedef enum SharemindCoreRandomEngineKind_ {
     /** Random number engine that only outputs zeroes. Useful for debugging. */
     SHAREMIND_RANDOM_NULL = 0,
 
-    /** Random number generator provided by openssl. */
-    SHAREMIND_RANDOM_OPENSSL,
-
     /** Random number generator based on SNOW2 stream cipher. */
     SHAREMIND_RANDOM_SNOW2,
 

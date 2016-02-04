@@ -23,7 +23,6 @@
 #include "ChaCha20RandomEngine.h"
 #include "CryptographicRandom.h"
 #include "NullRandomEngine.h"
-#include "OpenSslRandomEngine.h"
 #include "RandomBufferAgent.h"
 #include "RandomEngine.h"
 #include "Snow2RandomEngine.h"
@@ -91,11 +90,6 @@ RandomEngine * RandomEngineFactory::createRandomEngineWithSeed(
             if (seedSize > 0u)
                 throw RandomCtorSeedNotSupported{};
             return &NullRandomEngine::instance();
-        case SHAREMIND_RANDOM_OPENSSL:
-            if (seedSize > 0u)
-                throw RandomCtorSeedNotSupported{};
-            coreEngine = new OpenSslRandomEngine();
-            break;
         case SHAREMIND_RANDOM_SNOW2:
             coreEngine = new Snow2RandomEngine(seedData);
             break;
