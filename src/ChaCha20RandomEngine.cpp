@@ -206,14 +206,15 @@ void ChaCha20RandomEngine::fillBytes(void * buffer, size_t size) noexcept
 
             /* Increment the counter.
              *
-             * NOTE: that this is the place where our implementation differs from RFC7539
-             * where only the m_state[12] is used as a counter. This limits the RNG to
-             * generating only 256 GB of data. Thus, we borrow m_state[13] from the nonce and
-             * use it as higher bits of the counter.
+             * NOTE: This is one place where our implementation differs from
+             * RFC7539 where only the m_state[12] is used as a counter. This
+             * limits the RNG to generating only 256 GB of data. Thus, we
+             * borrow m_state[13] from the nonce and use it as higher bits of
+             * the counter.
              *
              * NOTE: This does not overflow as long as the m_state[12] is
-             * initially 1 and the number of values in uint32_t is
-             * divisible by 4!
+             * initially 0 and the number of values in uint32_t is divisible
+             * by 4!
              */
             m_state[12] += 4;
             if (m_state[12] == 0) {
