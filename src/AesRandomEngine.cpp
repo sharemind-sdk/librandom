@@ -60,7 +60,6 @@ struct Inner {
 
     inline Inner(const void * memptr_) noexcept
         : m_counter_inner (0)
-        , m_counter_outer (0)
         , block_consumed (AES_INTERNAL_BUFFER)
     {
         #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
@@ -74,7 +73,7 @@ struct Inner {
 
         uint8_t temp[AES_STATIC_KEY_SIZE];
         memcpy(temp, memptr_, AesRandomEngine::seedSize());
-        aes_seed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()));
+        aesSeed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()));
     }
 
     ~Inner() noexcept {
@@ -82,19 +81,18 @@ struct Inner {
         EVP_CIPHER_CTX_cleanup(&m_ctx_inner);
     }
 
-    void aes_seed(unsigned char * key, unsigned char * iv) noexcept;
-    void aes_reseed_inner() noexcept;
-    void aes_next_block() noexcept;
+    void aesSeed(unsigned char * key, unsigned char * iv) noexcept;
+    void aesReseedInner() noexcept;
+    void aesNextBlock() noexcept;
 
     EVP_CIPHER_CTX m_ctx_inner;
     EVP_CIPHER_CTX m_ctx_outer;
     uint64_t m_counter_inner;
-    uint64_t m_counter_outer;
     uint64_t block_consumed; // number of bytes that have been consumed from the block
     uint8_t block[AES_INTERNAL_BUFFER]; // buffer of generated randomness
 };
 
-inline void aes_seed_ctx(EVP_CIPHER_CTX * ctx,
+inline void aesSeedCtx(EVP_CIPHER_CTX * ctx,
                          unsigned char * key,
                          unsigned char * iv) noexcept
 {
@@ -102,67 +100,59 @@ inline void aes_seed_ctx(EVP_CIPHER_CTX * ctx,
         throw AesRandomEngine::InitException{};
 }
 
-void Inner::aes_seed(unsigned char * key, unsigned char * iv) noexcept {
-    aes_seed_ctx(&m_ctx_outer, key, iv);
-    aes_reseed_inner();
+void Inner::aesSeed(unsigned char * key, unsigned char * iv) noexcept {
+    aesSeedCtx(&m_ctx_outer, key, iv);
+    aesReseedInner();
 }
 
-void Inner::aes_reseed_inner() noexcept {
-    const auto num_blocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
-    const auto plaintext_size = num_blocks * AES_BLOCK_SIZE;
-    assert(plaintext_size < AES_STATIC_KEY_SIZE);
-    uint8_t plaintext[AES_STATIC_KEY_SIZE];
-    uint8_t seed[AES_STATIC_KEY_SIZE];
+void Inner::aesReseedInner() noexcept {
+    const auto numBlocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
+    const auto plaintextSize = numBlocks * AES_BLOCK_SIZE;
+    assert(plaintextSize < AES_STATIC_KEY_SIZE);
+    uint8_t plaintext[AES_STATIC_KEY_SIZE] = {};
+    uint8_t seed[AES_STATIC_KEY_SIZE] = {};
 
-    memset(&plaintext[0], 0, plaintext_size);
-    for (size_t i = 0; i < num_blocks; ++ i) {
-        memcpy(&plaintext[i*AES_BLOCK_SIZE], &m_counter_outer, sizeof(m_counter_outer));
-        m_counter_outer ++;
-    }
-
-    int bytes_written = 0;
-    assert(plaintext_size <= std::numeric_limits<int>::max());
+    int bytesWritten = 0;
+    assert(plaintextSize <= std::numeric_limits<int>::max());
     if (!EVP_EncryptUpdate(&m_ctx_outer,
                            &seed[0],
-                           &bytes_written,
+                           &bytesWritten,
                            plaintext,
-                           static_cast<int>(plaintext_size)))
-        SHAREMIND_ABORT("aes_reseed_inner: Encryption failed!");
+                           static_cast<int>(plaintextSize)))
+        SHAREMIND_ABORT("aesReseedInner: Encryption failed!");
 
-    assert(bytes_written > 0
-           && static_cast<decltype(plaintext_size)>(bytes_written)
-              == plaintext_size);
+    assert(bytesWritten > 0
+           && static_cast<decltype(plaintextSize)>(bytesWritten)
+              == plaintextSize);
 
-    if (!EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytes_written, &bytes_written))
-        SHAREMIND_ABORT("aes_reseed_inner: EncryptFinal failed!");
+    if (!EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytesWritten, &bytesWritten))
+        SHAREMIND_ABORT("aesReseedInner: EncryptFinal failed!");
 
-    assert(bytes_written == 0);
+    assert(bytesWritten == 0);
     const auto keyLen = EVP_CIPHER_key_length(aes_cipher());
-    aes_seed_ctx(&m_ctx_inner, &seed[0], &seed[0] + keyLen);
+    aesSeedCtx(&m_ctx_inner, &seed[0], &seed[0] + keyLen);
 }
 
-void Inner::aes_next_block() noexcept {
+void Inner::aesNextBlock() noexcept {
     if (m_counter_inner >= AES_COUNTER_LIMIT) {
-        aes_reseed_inner();
+        aesReseedInner();
         m_counter_inner = 0;
     }
 
-    unsigned char plaintext[AES_INTERNAL_BUFFER];
-    memset(&plaintext[0], 0, sizeof (plaintext));
-    for (size_t i = 0; i < AES_PARALLEL_BLOCKS; ++ i) {
-        memcpy(&plaintext[i*AES_BLOCK_SIZE], &m_counter_inner, sizeof(m_counter_inner));
-        m_counter_inner ++;
-    }
+    // We are using a temporary zero buffer because OpenSSL documentation does
+    // not explicitly state that in-place encrypts are allowed.
+    unsigned char plaintext[AES_INTERNAL_BUFFER] = { };
 
-    int bytes_written = 0;
-    if (!EVP_EncryptUpdate(&m_ctx_inner, &block[0], &bytes_written, plaintext, AES_INTERNAL_BUFFER))
+    int bytesWritten = 0;
+    if (!EVP_EncryptUpdate(&m_ctx_inner, &block[0], &bytesWritten, plaintext, AES_INTERNAL_BUFFER))
         SHAREMIND_ABORT("Encryption failed.");
 
-    assert(bytes_written == AES_INTERNAL_BUFFER);
-    if (!EVP_EncryptFinal_ex(&m_ctx_inner, &block[0] + bytes_written, &bytes_written))
+    assert(bytesWritten == AES_INTERNAL_BUFFER);
+    if (!EVP_EncryptFinal_ex(&m_ctx_inner, &block[0] + bytesWritten, &bytesWritten))
         SHAREMIND_ABORT("EncryptFinal failed.");
 
-    assert(bytes_written == 0);
+    m_counter_inner += AES_PARALLEL_BLOCKS;
+    assert(bytesWritten == 0);
 }
 
 } // namespace anonymous
@@ -192,7 +182,7 @@ void AesRandomEngine::fillBytes(void * memptr, size_t size) noexcept {
     // Consume full blocks (first might already be partially or entirely consumed).
     while (offsetEnd <= size) {
         memcpy(ptrAdd(memptr, offsetStart), &rng.block[rng.block_consumed], unconsumedSize);
-        rng.aes_next_block();
+        rng.aesNextBlock();
         rng.block_consumed = 0;
         unconsumedSize = AES_INTERNAL_BUFFER;
         offsetStart = offsetEnd;
@@ -210,9 +200,9 @@ bool AesRandomEngine::supported() noexcept {
         return false;
 
     // Make sure that our seed, aligned to AES_BLOCK_SIZE, fits into AES_STATIC_KEY_SIZE.
-    auto const num_blocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
-    auto const seed_size = num_blocks * AES_BLOCK_SIZE;
-    return seed_size <= AES_STATIC_KEY_SIZE;
+    auto const numBlocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
+    auto const seedSize = numBlocks * AES_BLOCK_SIZE;
+    return seedSize <= AES_STATIC_KEY_SIZE;
 }
 
 size_t AesRandomEngine::seedSize() noexcept {
