@@ -1,7 +1,6 @@
 #include "../src/AesRandomEngine.h"
 
 #include <array>
-#include <iostream>
 
 #define AES_TEST_BLOCK_SIZE 16
 #define AES_TEST_SEED_SIZE 32
@@ -11,6 +10,12 @@ using AesBlock = std::array<uint8_t, AES_TEST_BLOCK_SIZE>;
 
 using namespace sharemind;
 
+// Check for the correct seed size
+void test0 () {
+    assert (AesRandomEngine::seedSize() == AES_TEST_SEED_SIZE);
+}
+
+// Check with test vector from RFC3686
 void test1 () {
     // Outer seed:
     const AesSeed seed {{
@@ -19,7 +24,8 @@ void test1 () {
         0x4B, 0xF7, 0xA5, 0x76, 0x55, 0x77, 0xF3, 0x9E,
         // IV:
         0x00, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }};
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01
+    }};
 
     // Inner seed:
     // b7603328dbc2931b410e16c8067e62df
@@ -51,6 +57,8 @@ void test1 () {
     assert (tempBlock == secondBlock);
 }
 
+// Check with test vector from "NIST Special Publication 800-38A"
+// Tests jumping the generator ahead a bit.
 void test2 () {
 
     // Outer state:
@@ -104,7 +112,7 @@ void test2 () {
 }
 
 int main () {
-    assert (AesRandomEngine::seedSize() == AES_TEST_SEED_SIZE);
+    test0();
     test1();
     test2();
     return 0;
