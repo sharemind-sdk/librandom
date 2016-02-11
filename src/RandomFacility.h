@@ -40,18 +40,16 @@ public: /* Methods: */
     SharemindRandomFacility & facility() noexcept
     { return static_cast<SharemindRandomFacility &>(*this); }
 
+    inline void RandomBlocking(void * memptr, size_t size) const noexcept;
+    inline void URandomBlocking(void * memptr, size_t size) const noexcept;
+    inline size_t RandomNonblocking(void * memptr, size_t size) const noexcept;
+    inline size_t URandomNonblocking(void * memptr, size_t size) const noexcept;
+
     inline SharemindRandomEngineConf const & defaultFactoryConfiguration()
             const noexcept
     { return m_engineFactory.defaultConfiguration(); }
 
-    SharemindRandomEngine * createRandomEngine();
-
-    SharemindRandomEngine * createRandomEngine(
-            SharemindRandomEngineConf const & conf);
-
-    SharemindRandomEngine * createRandomEngineWithSeed(
-            const void * const seedData,
-            size_t const seedSize);
+    size_t getSeedSize(SharemindRandomEngineConf const & conf) const;
 
     SharemindRandomEngine * createRandomEngineWithSeed(
             SharemindRandomEngineConf const & conf,

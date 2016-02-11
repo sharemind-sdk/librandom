@@ -115,10 +115,59 @@ typedef enum SharemindRandomEngineCtorError_ {
 
 } SharemindRandomEngineCtorError;
 
+
+/**
+ * \brief Cryptographic random number generators.
+ */
+struct SharemindCryptographicRandom {
+    /**
+     * \param[out] memptr pointer to the memory region to randomize.
+     * \param[in] size of the memory region to randomize.
+     */
+    void (* const RandomBlocking)(
+            SharemindRandomFacility * facility,
+            void * memptr,
+            size_t size);
+
+    /**
+     * \param[out] memptr pointer to the memory region to randomize.
+     * \param[in] size of the memory region to randomize.
+     */
+    void (* const URandomBlocking)(
+            SharemindRandomFacility * facility,
+            void * memptr,
+            size_t size);
+
+    /**
+     * \param[out] memptr pointer to the memory region to randomize.
+     * \param[in] size of the memory region to randomize.
+     * \returns Number of bytes generated.
+     */
+    size_t (* const RandomNonblocking)(
+            SharemindRandomFacility * facility,
+            void * memptr,
+            size_t size);
+
+    /**
+     * \param[out] memptr pointer to the memory region to randomize.
+     * \param[in] size of the memory region to randomize.
+     * \returns Number of bytes generated.
+     */
+    size_t (* const URandomNonblocking)(
+            SharemindRandomFacility * facility,
+            void * memptr,
+            size_t size);
+};
+
 /**
  * \brief Facility for creating random number generation engines.
  */
 struct SharemindRandomFacility_ {
+
+    /**
+     * \brief Cryptographic random number generators for entropy generation.
+     */
+    SharemindCryptographicRandom entropy;
 
     /**
      * \param[in] facility pointer to this factory facility.
@@ -134,18 +183,22 @@ struct SharemindRandomFacility_ {
      * \param[in] facility pointer to this factory facility.
      * \param[in] conf the configuration that specified which random engine to
      *                 use and how it's configured.
+     * \returns the size of the seed required for the random engine specified
+     *                 in the configuration.
+     */
+    size_t (* const getSeedSize)(
+            SharemindRandomFacility * facility,
+            SharemindRandomEngineConf const * conf);
+
+    /**
+     * \param[in] facility pointer to this factory facility.
+     * \param[in] conf the configuration that specified which random engine to
+     *                 use and how it's configured.
+     * \param[in] memptr pointer to the seed.
+     * \param[in] size of the seed.
      * \param[out] e error flag. Set only on error, not touched otherwise.
                      May be NULL.
      * \returns a new random number generation engine.
-     * \brief construct a new random number generator with a fresh seed.
-     */
-    SharemindRandomEngine * (* const createRandomEngine)(
-            SharemindRandomFacility * facility,
-            SharemindRandomEngineConf const * conf,
-            SharemindRandomEngineCtorError * e);
-    /**
-     * \param[in] memptr pointer to the seed.
-     * \param[in] size of the seed.
      * \brief construct a new random number generator with a given seed.
      * \see make_random_engine for details and other parameters.
      */

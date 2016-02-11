@@ -22,6 +22,7 @@
 #include <cassert>
 #include <memory>
 #include <sharemind/visibility.h>
+#include "CryptographicRandom.h"
 #include "RandomEngine.h"
 
 
@@ -113,23 +114,87 @@ inline void handleException(SharemindRandomEngineCtorError * const e) {
         return nullptr; \
     }
 
-
 extern "C"
-SharemindRandomEngine * SharemindRandomFacility_createRandomEngine(
+void SharemindRandomFacility_RandomBlocking(
         SharemindRandomFacility * facility,
-        SharemindRandomEngineConf const * conf,
-        SharemindRandomEngineCtorError * errorPtr) noexcept
+        void * memptr,
+        size_t size) noexcept
         SHAREMIND_VISIBILITY_HIDDEN;
 
 extern "C"
-SharemindRandomEngine * SharemindRandomFacility_createRandomEngine(
+void SharemindRandomFacility_RandomBlocking(
         SharemindRandomFacility * facility,
-        SharemindRandomEngineConf const * conf,
-        SharemindRandomEngineCtorError * errorPtr) noexcept
+        void * memptr,
+        size_t size) noexcept
 {
     assert(facility);
-    SHAREMIND_RANDOMFACILITY_TRY(
-            return fromWrapper(*facility).createRandomEngine(*conf);)
+    fromWrapper(*facility).RandomBlocking(memptr, size);
+}
+
+extern "C"
+void SharemindRandomFacility_URandomBlocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+        SHAREMIND_VISIBILITY_HIDDEN;
+
+extern "C"
+void SharemindRandomFacility_URandomBlocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+{
+    assert(facility);
+    fromWrapper(*facility).URandomBlocking(memptr, size);
+}
+
+extern "C"
+size_t SharemindRandomFacility_RandomNonblocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+        SHAREMIND_VISIBILITY_HIDDEN;
+
+extern "C"
+size_t SharemindRandomFacility_RandomNonblocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+{
+    assert(facility);
+    return fromWrapper(*facility).RandomNonblocking(memptr, size);
+}
+
+extern "C"
+size_t SharemindRandomFacility_URandomNonblocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+        SHAREMIND_VISIBILITY_HIDDEN;
+
+extern "C"
+size_t SharemindRandomFacility_URandomNonblocking(
+        SharemindRandomFacility * facility,
+        void * memptr,
+        size_t size) noexcept
+{
+    assert(facility);
+    return fromWrapper(*facility).RandomNonblocking(memptr, size);
+}
+
+extern "C"
+size_t SharemindRandomFacility_getSeedSize(
+        SharemindRandomFacility * facility,
+        SharemindRandomEngineConf const * conf) noexcept
+        SHAREMIND_VISIBILITY_HIDDEN;
+
+extern "C"
+size_t SharemindRandomFacility_getSeedSize(
+        SharemindRandomFacility * facility,
+        SharemindRandomEngineConf const * conf) noexcept
+{
+    assert(facility);
+    return fromWrapper(*facility).getSeedSize(*conf);
 }
 
 extern "C"
@@ -179,8 +244,14 @@ SharemindRandomEngine * wrapEngine(Set & set, RandomEngine * const engine) {
 RandomFacility::RandomFacility(
         RandomEngineFactory::Configuration const & defaultFactoryConf)
     : SharemindRandomFacility{
+          {
+            &SharemindRandomFacility_RandomBlocking,
+            &SharemindRandomFacility_URandomBlocking,
+            &SharemindRandomFacility_RandomNonblocking,
+            &SharemindRandomFacility_URandomNonblocking,
+          },
           &SharemindRandomFacility_defaultFactoryConfiguration,
-          &SharemindRandomFacility_createRandomEngine,
+          &SharemindRandomFacility_getSeedSize,
           &SharemindRandomFacility_createRandomEngineWithSeed}
     , m_engineFactory{defaultFactoryConf}
 {}
@@ -190,20 +261,29 @@ RandomFacility::~RandomFacility() noexcept {
         delete static_cast<ScopedEngine *>(engine);
 }
 
-SharemindRandomEngine * RandomFacility::createRandomEngine()
-{ return wrapEngine(m_scopedEngines, m_engineFactory.createRandomEngine()); }
-
-SharemindRandomEngine * RandomFacility::createRandomEngine(
-        SharemindRandomEngineConf const & conf)
-{ return wrapEngine(m_scopedEngines, m_engineFactory.createRandomEngine(conf));}
-
-SharemindRandomEngine * RandomFacility::createRandomEngineWithSeed(
-        const void * const seedData,
-        size_t const seedSize)
+void RandomFacility::RandomBlocking(void * memptr, size_t size) const noexcept
 {
-    return wrapEngine(m_scopedEngines,
-                      m_engineFactory.createRandomEngineWithSeed(seedData,
-                                                                 seedSize));
+    sharemindCyptographicRandom(memptr, size);
+}
+
+void RandomFacility::URandomBlocking(void * memptr, size_t size) const noexcept
+{
+    sharemindCyptographicURandom(memptr, size);
+}
+
+size_t RandomFacility::RandomNonblocking(void * memptr, size_t size) const noexcept
+{
+    return sharemindCryptographicRandomNonblocking(memptr, size);
+}
+
+size_t RandomFacility::URandomNonblocking(void * memptr, size_t size) const noexcept
+{
+    return sharemindCryptographicURandomNonblocking(memptr, size);
+}
+
+size_t RandomFacility::getSeedSize(SharemindRandomEngineConf const & conf) const
+{
+    return RandomEngineFactory::getSeedSize(conf.coreEngine);
 }
 
 SharemindRandomEngine * RandomFacility::createRandomEngineWithSeed(

@@ -17,35 +17,52 @@
  * For further information, please contact us at sharemind@cyber.ee.
  */
 
-#ifndef SHAREMIND_LIBRANDOM_RANDOMENGINE_H
-#define SHAREMIND_LIBRANDOM_RANDOMENGINE_H
+#ifndef SHAREMIND_LIBRANDOM_RANDOMENGINEFACADE_H
+#define SHAREMIND_LIBRANDOM_RANDOMENGINEFACADE_H
 
 #include "librandom.h"
 
 #include <cassert>
 #include <cstdlib>
-#include <exception>
-#include <sharemind/Exception.h>
+#include <vector>
 
 namespace sharemind {
 
-class RandomEngine {
-
-public: /* Types: */
-
-    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         GeneratorNotSupportedException,
-                                         "Generator not supported!");
+/**
+ * \brief Facade for \a SharemindRandomEngine.
+ */
+class RandomEngineFacade {
 
 public: /* Methods: */
 
-    virtual ~RandomEngine() noexcept {}
+    inline explicit RandomEngineFacade (SharemindRandomEngine * rng)
+        : m_inner (rng)
+    { assert (m_inner != nullptr); }
 
-    virtual void fillBytes(void * buffer, size_t size) noexcept = 0;
+    RandomEngineFacade (const RandomEngineFacade &) = delete;
+    RandomEngineFacade & operator = (const RandomEngineFacade &) = delete;
+
+    RandomEngineFacade (RandomEngineFacade && other)
+        : m_inner (other.m_inner)
+    { other.m_inner = nullptr; }
+
+    RandomEngineFacade & operator = (RandomEngineFacade && other) {
+        if (this != &other) {
+            m_inner = other.m_inner;
+            other.m_inner = nullptr;
+        }
+
+        return *this;
+    }
+
+    inline void fillBytes (void* memptr, size_t numBytes) noexcept {
+        assert (m_inner != nullptr);
+        m_inner->fillBytes (m_inner, memptr, numBytes);
+    }
 
     template <typename T>
     inline void fillBlock(T * begin, T * end) noexcept {
+        assert (m_inner != nullptr);
         assert(begin <= end);
         if (begin < end)
             fillBytes(begin, sizeof(T) * (end - begin));
@@ -53,13 +70,17 @@ public: /* Methods: */
 
     template <typename T>
     inline T randomValue() noexcept(noexcept(T(T()))) {
+        assert (m_inner != nullptr);
         T value;
         fillBytes(&value, sizeof(T));
         return value;
     }
 
+private: /* Fields: */
+    SharemindRandomEngine * m_inner;
+
 };
 
 } /* namespace sharemind { */
 
-#endif /* SHAREMIND_LIBRANDOM_RANDOMENGINE_H */
+#endif /* SHAREMIND_LIBRANDOM_RANDOMENGINEFACADE_H */

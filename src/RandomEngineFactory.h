@@ -69,10 +69,10 @@ public: /* Methods: */
     inline Configuration const & defaultConfiguration() const noexcept
     { return m_defaultConf; }
 
-    inline RandomEngine * createRandomEngine() const
-    { return createRandomEngine(m_defaultConf); }
+    inline size_t getSeedSize() const noexcept
+    { return getSeedSize(m_defaultConf.coreEngine); }
 
-    static RandomEngine * createRandomEngine(Configuration const & conf);
+    static size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept;
 
     inline RandomEngine * createRandomEngineWithSeed(
             const void * const seedData,
