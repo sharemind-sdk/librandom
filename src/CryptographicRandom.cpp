@@ -57,6 +57,8 @@
     #include <mutex>
     #include <sharemind/abort.h>
     #include <sys/ioctl.h>
+    #include <sys/ipc.h>
+    #include <sys/shm.h>
     #include <sys/stat.h>
     #include <sys/types.h>
     #include <unistd.h>
@@ -68,12 +70,28 @@ namespace {
 /* Always wait for at least 256 bits of entropy which is required for the Linux
    kernel to initialize its entropy pool for the CSPRNG used for both
    /dev/random and /dev/urandom. */
-void waitForEntropyInitialization(int const fd) {
+void waitForEntropyInitialization(char const * filename, int const fd) {
     // Ensure this is executed only once:
     static bool entropyPoolInitialized = false;
     if (!entropyPoolInitialized) {
+        bool globalFlagSet = false;
+        key_t const key = ::ftok(filename, 's');
+        if (key == -1) \
+            SHAREMIND_ABORT("ftok() failed with errno = %d!\n",
+                            errno);
         int estimatedEntropyBits = 0;
         for (;;) {
+            int const shmid = ::shmget(key, 1, 0444);
+            if (shmid == -1) {
+                /* ENOENT No segment exists for the given key. */
+                if (errno != ENOENT)
+                    SHAREMIND_ABORT("shmget() failed with errno = %d!\n",
+                                    errno);
+            } else {
+                /* Segment already exists. */
+                globalFlagSet = true;
+                break;
+            }
             /* According to `man 4 urandom` the size returned is the same as
                from /proc/sys/kernel/random/entropy_avail which is the number of
                estimated BITS (!!!) of entropy. */
@@ -83,6 +101,15 @@ void waitForEntropyInitialization(int const fd) {
             if (estimatedEntropyBits >= 256)
                 break;
             sleep(1u);
+        }
+        if (!globalFlagSet) {
+            int const shmid = ::shmget(key, 1, 0644 | IPC_CREAT | IPC_EXCL);
+            if (shmid == -1) {
+                /* EEXIST Segment already exists for key. */
+                if (errno != EEXIST)
+                    SHAREMIND_ABORT("shmget() failed with errno = %d!\n",
+                                    errno);
+            }
         }
         entropyPoolInitialized = true;
     }
@@ -98,7 +125,7 @@ void waitForEntropyInitialization(int const fd) {
         { \
             if (m_fd == -1) \
                 SHAREMIND_ABORT("Unable to open " filename "!"); \
-            waitForEntropyInitialization(m_fd); \
+            waitForEntropyInitialization(filename, m_fd); \
         } \
         ssize_t read(void * const buf, size_t const bufSize) noexcept { \
             std::lock_guard<std::mutex> const guard{m_mutex}; \
