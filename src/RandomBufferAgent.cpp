@@ -46,7 +46,7 @@ void RandomBufferAgent::fillBytes(void * buffer,
         assert(read <= bufferSize);
         if (read >= bufferSize)
             return;
-        buffer = PotentiallyVoidTypeInfo<void>::ptrAdd(buffer, read);
+        buffer = ptrAdd(buffer, read);
         bufferSize -= read;
         m_buffer.waitDataAvailable();
     }
