@@ -57,6 +57,28 @@ inline void cryptographicRandom(void * buf, size_t bufSize) noexcept
 inline void cryptographicURandom(void * buf, size_t bufSize) noexcept
 { return ::sharemindCyptographicURandom(buf, bufSize); }
 
+template <typename T>
+inline T cryptographicRandom() noexcept {
+    T r;
+    cryptographicRandom(&r, sizeof(T));
+    return r;
+}
+
+template <typename T>
+inline T cryptographicURandom() noexcept {
+    T r;
+    cryptographicURandom(&r, sizeof(T));
+    return r;
+}
+
+template <typename T>
+inline void cryptographicRandom(T & r) noexcept
+{ cryptographicRandom(&r, sizeof(T)); }
+
+template <typename T>
+inline void cryptographicURandom(T & r) noexcept
+{ cryptographicURandom(&r, sizeof(T)); }
+
 } /* namespace sharemind { */
 #endif /* __cplusplus */
 
