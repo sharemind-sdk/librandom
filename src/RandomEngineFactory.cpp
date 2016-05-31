@@ -37,25 +37,8 @@
 
 #define SEED_TEMP_BUFFER_SIZE 256
 
+
 namespace sharemind {
-
-//RandomEngine * RandomEngineFactory::createRandomEngine(
-//        RandomEngineFactory::Configuration const & conf)
-//{
-//    auto const seedSize = getSeedSize(conf.coreEngine);
-//    if (seedSize > SEED_TEMP_BUFFER_SIZE)
-//        throw RandomCtorSeedSelfGenerateError{};
-
-//    unsigned char tempBuffer[SEED_TEMP_BUFFER_SIZE];
-
-//    #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-//    VALGRIND_MAKE_MEM_DEFINED(tempBuffer, sizeof(tempBuffer));
-//    #endif
-
-//    cryptographicURandom(tempBuffer, seedSize);
-
-//    return createRandomEngineWithSeed(conf, tempBuffer, seedSize);
-//}
 
 size_t RandomEngineFactory::getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
