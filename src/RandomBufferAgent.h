@@ -36,7 +36,7 @@ class RandomBufferAgent: public RandomEngine {
 
 public: /* Methods: */
 
-    RandomBufferAgent(std::unique_ptr<RandomEngine> randomEngine,
+    RandomBufferAgent(std::shared_ptr<RandomEngine> randomEngine,
                       size_t const bufferSize);
 
     ~RandomBufferAgent() noexcept override;
@@ -49,7 +49,7 @@ private: /* Methods: */
 
 public: /* Fields: */
 
-    std::unique_ptr<RandomEngine> m_engine;
+    std::shared_ptr<RandomEngine> m_engine;
     CircBufferSCSP<void> m_buffer;
     Stoppable m_stoppable;
     std::thread m_thread;

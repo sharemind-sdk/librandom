@@ -50,7 +50,7 @@ size_t RandomEngineFactory::getSeedSize(SharemindCoreRandomEngineKind kind) noex
 }
 
 
-RandomEngine * RandomEngineFactory::createRandomEngineWithSeed(
+std::shared_ptr<RandomEngine> RandomEngineFactory::createRandomEngineWithSeed(
         Configuration const & conf,
         void const * seedData,
         size_t seedSize)
@@ -61,20 +61,21 @@ RandomEngine * RandomEngineFactory::createRandomEngineWithSeed(
         throw RandomCtorSeedTooShort{};
 
     // Construct core engine:
-    RandomEngine * coreEngine;
+    std::shared_ptr<RandomEngine> coreEngine;
     switch (conf.coreEngine) {
         case SHAREMIND_RANDOM_NULL:
             if (seedSize > 0u)
                 throw RandomCtorSeedNotSupported{};
-            return &NullRandomEngine::instance();
+            return std::shared_ptr<RandomEngine>(&NullRandomEngine::instance(),
+                                                 [](RandomEngine * const){});
         case SHAREMIND_RANDOM_SNOW2:
-            coreEngine = new Snow2RandomEngine(seedData);
+            coreEngine = std::make_shared<Snow2RandomEngine>(seedData);
             break;
         case SHAREMIND_RANDOM_CHACHA20:
-            coreEngine = new ChaCha20RandomEngine(seedData);
+            coreEngine = std::make_shared<ChaCha20RandomEngine>(seedData);
             break;
         case SHAREMIND_RANDOM_AES:
-            coreEngine = new AesRandomEngine(seedData);
+            coreEngine = std::make_shared<AesRandomEngine>(seedData);
             break;
         default:
             throw RandomCtorGeneratorNotSupported{};
@@ -85,9 +86,8 @@ RandomEngine * RandomEngineFactory::createRandomEngineWithSeed(
     case SHAREMIND_RANDOM_BUFFERING_NONE:
         return coreEngine;
     case SHAREMIND_RANDOM_BUFFERING_THREAD:
-            return new RandomBufferAgent{
-                std::unique_ptr<RandomEngine>{coreEngine},
-                conf.bufferSize};
+            return std::make_shared<RandomBufferAgent>(coreEngine,
+                                                       conf.bufferSize);
     default:
         throw RandomCtorOtherError{};
     }

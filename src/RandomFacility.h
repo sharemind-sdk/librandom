@@ -22,7 +22,9 @@
 
 #include "librandom.h"
 
-#include <set>
+#include <list>
+#include <memory>
+#include "RandomEngine.h"
 #include "RandomEngineFactory.h"
 
 
@@ -30,12 +32,28 @@ namespace sharemind {
 
 class RandomFacility: public SharemindRandomFacility {
 
+public: /* Types: */
+
+    class ScopedEngine: public SharemindRandomEngine {
+
+    public: /* Methods: */
+
+        ScopedEngine(std::shared_ptr<RandomEngine> engine);
+
+        inline void fillBytes(void * const buffer,
+                              size_t const bufferSize) noexcept
+        { (assert(m_engine), m_engine)->fillBytes(buffer, bufferSize); }
+
+    private: /* Fields: */
+
+        std::shared_ptr<RandomEngine> const m_engine;
+
+    };
+
 public: /* Methods: */
 
     RandomFacility(
             RandomEngineFactory::Configuration const & defaultFactoryConf);
-
-    virtual ~RandomFacility() noexcept;
 
     SharemindRandomFacility & facility() noexcept
     { return static_cast<SharemindRandomFacility &>(*this); }
@@ -51,7 +69,7 @@ public: /* Methods: */
 
     size_t getSeedSize(SharemindRandomEngineConf const & conf) const;
 
-    SharemindRandomEngine * createRandomEngineWithSeed(
+    std::shared_ptr<SharemindRandomEngine> createRandomEngineWithSeed(
             SharemindRandomEngineConf const & conf,
             const void * seedData,
             size_t seedSize);
@@ -59,7 +77,7 @@ public: /* Methods: */
 private: /* Fields: */
 
     RandomEngineFactory m_engineFactory;
-    std::set<void *> m_scopedEngines;
+    std::list<std::shared_ptr<ScopedEngine> > m_scopedEngines;
 
 };
 

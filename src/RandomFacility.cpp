@@ -35,26 +35,9 @@ extern "C" void SharemindRandomEngine_fillBytes(SharemindRandomEngine * rng,
                                                 size_t size) noexcept
         SHAREMIND_VISIBILITY_HIDDEN;
 
-} // anonymous namespace
-
-struct ScopedEngine: SharemindRandomEngine {
-
-    ScopedEngine(RandomEngine * const engine)
-        : SharemindRandomEngine{&SharemindRandomEngine_fillBytes}
-        , m_engine{(assert(engine), engine)}
-    {}
-
-    void fillBytes(void * const buffer, size_t const bufferSize) noexcept
-    { m_engine->fillBytes(buffer, bufferSize); }
-
-    std::unique_ptr<RandomEngine> m_engine;
-
-};
-
-namespace {
-
-inline ScopedEngine & fromWrapper(SharemindRandomEngine & base) noexcept
-{ return static_cast<ScopedEngine &>(base); }
+inline RandomFacility::ScopedEngine & fromWrapper(SharemindRandomEngine & base)
+        noexcept
+{ return static_cast<RandomFacility::ScopedEngine &>(base); }
 
 extern "C" void SharemindRandomEngine_fillBytes(SharemindRandomEngine * rng,
                                                 void * memptr,
@@ -217,29 +200,19 @@ SharemindRandomEngine * SharemindRandomFacility_createRandomEngineWithSeed(
     assert(facility);
 
     SHAREMIND_RANDOMFACILITY_TRY(
-            return fromWrapper(*facility).createRandomEngineWithSeed(*conf,
-                                                                     seedData,
-                                                                     seedSize);)
-}
-
-template <typename Set>
-SharemindRandomEngine * wrapEngine(Set & set, RandomEngine * const engine) {
-    try {
-        ScopedEngine * const scopedEngine = new ScopedEngine{engine};
-        try {
-            set.insert(scopedEngine);
-            return scopedEngine;
-        } catch (...) {
-            delete scopedEngine;
-            throw;
-        }
-    } catch (...) {
-        delete engine;
-        throw;
-    }
+            return fromWrapper(*facility).createRandomEngineWithSeed(
+                            *conf,
+                            seedData,
+                            seedSize).get();)
 }
 
 } // anonymous namespace
+
+
+RandomFacility::ScopedEngine::ScopedEngine(std::shared_ptr<RandomEngine> engine)
+    : SharemindRandomEngine{&SharemindRandomEngine_fillBytes}
+    , m_engine{std::move((assert(engine), engine))}
+{}
 
 RandomFacility::RandomFacility(
         RandomEngineFactory::Configuration const & defaultFactoryConf)
@@ -256,11 +229,6 @@ RandomFacility::RandomFacility(
     , m_engineFactory{defaultFactoryConf}
 {}
 
-RandomFacility::~RandomFacility() noexcept {
-    for (auto * const engine : m_scopedEngines)
-        delete static_cast<ScopedEngine *>(engine);
-}
-
 void RandomFacility::RandomBlocking(void * memptr, size_t size) const noexcept
 { sharemindCyptographicRandom(memptr, size); }
 
@@ -276,15 +244,19 @@ size_t RandomFacility::URandomNonblocking(void * memptr, size_t size) const noex
 size_t RandomFacility::getSeedSize(SharemindRandomEngineConf const & conf) const
 { return RandomEngineFactory::getSeedSize(conf.coreEngine); }
 
-SharemindRandomEngine * RandomFacility::createRandomEngineWithSeed(
+std::shared_ptr<SharemindRandomEngine>
+RandomFacility::createRandomEngineWithSeed(
         SharemindRandomEngineConf const & conf,
         const void * seedData,
         size_t seedSize)
 {
-    return wrapEngine(m_scopedEngines,
-                      m_engineFactory.createRandomEngineWithSeed(conf,
-                                                                 seedData,
-                                                                 seedSize));
+    auto scopedEngine(
+                std::make_shared<RandomFacility::ScopedEngine>(
+                    m_engineFactory.createRandomEngineWithSeed(conf,
+                                                               seedData,
+                                                               seedSize)));
+    m_scopedEngines.emplace_back(scopedEngine);
+    return scopedEngine;
 }
 
 

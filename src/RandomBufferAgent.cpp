@@ -26,7 +26,7 @@
 namespace sharemind {
 
 RandomBufferAgent::RandomBufferAgent(
-        std::unique_ptr<RandomEngine> randomEngine,
+        std::shared_ptr<RandomEngine> randomEngine,
         size_t const bufferSize)
    : m_engine{std::move(randomEngine)}
    , m_buffer(bufferSize)

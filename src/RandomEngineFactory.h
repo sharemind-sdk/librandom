@@ -23,6 +23,7 @@
 #include "librandom.h"
 
 #include <cstdlib>
+#include <memory>
 #include <sharemind/Exception.h>
 
 
@@ -74,12 +75,12 @@ public: /* Methods: */
 
     static size_t getSeedSize(SharemindCoreRandomEngineKind kind) noexcept;
 
-    inline RandomEngine * createRandomEngineWithSeed(
+    inline std::shared_ptr<RandomEngine> createRandomEngineWithSeed(
             const void * const seedData,
             size_t const seedSize) const
     { return createRandomEngineWithSeed(m_defaultConf, seedData, seedSize); }
 
-    static RandomEngine * createRandomEngineWithSeed(
+    static std::shared_ptr<RandomEngine> createRandomEngineWithSeed(
             Configuration const & conf,
             const void * seedData,
             size_t seedSize);
