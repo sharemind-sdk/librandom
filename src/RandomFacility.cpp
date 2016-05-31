@@ -262,29 +262,19 @@ RandomFacility::~RandomFacility() noexcept {
 }
 
 void RandomFacility::RandomBlocking(void * memptr, size_t size) const noexcept
-{
-    sharemindCyptographicRandom(memptr, size);
-}
+{ sharemindCyptographicRandom(memptr, size); }
 
 void RandomFacility::URandomBlocking(void * memptr, size_t size) const noexcept
-{
-    sharemindCyptographicURandom(memptr, size);
-}
+{ sharemindCyptographicURandom(memptr, size); }
 
 size_t RandomFacility::RandomNonblocking(void * memptr, size_t size) const noexcept
-{
-    return sharemindCryptographicRandomNonblocking(memptr, size);
-}
+{ return sharemindCryptographicRandomNonblocking(memptr, size); }
 
 size_t RandomFacility::URandomNonblocking(void * memptr, size_t size) const noexcept
-{
-    return sharemindCryptographicURandomNonblocking(memptr, size);
-}
+{ return sharemindCryptographicURandomNonblocking(memptr, size); }
 
 size_t RandomFacility::getSeedSize(SharemindRandomEngineConf const & conf) const
-{
-    return RandomEngineFactory::getSeedSize(conf.coreEngine);
-}
+{ return RandomEngineFactory::getSeedSize(conf.coreEngine); }
 
 SharemindRandomEngine * RandomFacility::createRandomEngineWithSeed(
         SharemindRandomEngineConf const & conf,
