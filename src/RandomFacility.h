@@ -34,21 +34,7 @@ class RandomFacility: public SharemindRandomFacility {
 
 public: /* Types: */
 
-    class ScopedEngine: public SharemindRandomEngine {
-
-    public: /* Methods: */
-
-        ScopedEngine(std::shared_ptr<RandomEngine> engine);
-
-        inline void fillBytes(void * const buffer,
-                              size_t const bufferSize) noexcept
-        { (assert(m_engine), m_engine)->fillBytes(buffer, bufferSize); }
-
-    private: /* Fields: */
-
-        std::shared_ptr<RandomEngine> const m_engine;
-
-    };
+    class ScopedEngine;
 
 public: /* Methods: */
 
