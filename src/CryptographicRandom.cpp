@@ -80,6 +80,8 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
         if (key == -1) \
             SHAREMIND_ABORT("ftok() failed with errno = %d!\n",
                             errno);
+        int needEntropy = 256;
+        int lastEstimatedEntropyBits = 0;
         int estimatedEntropyBits = 0;
         for (;;) {
             int const shmid = ::shmget(key, 1, 0444);
@@ -99,9 +101,15 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
             if (::ioctl(fd, RNDGETENTCNT, &estimatedEntropyBits) != 0)
                 SHAREMIND_ABORT("ioctl(RNDGETENTCNT) failed with errno = %d!\n",
                                 errno);
-            if (estimatedEntropyBits >= 256)
-                break;
             assert(estimatedEntropyBits > 0);
+            if (estimatedEntropyBits > lastEstimatedEntropyBits) {
+                auto const entropyIncrease =
+                        estimatedEntropyBits - lastEstimatedEntropyBits;
+                if (entropyIncrease >= needEntropy)
+                    break;
+                needEntropy -= entropyIncrease;
+            }
+            lastEstimatedEntropyBits = estimatedEntropyBits;
             ::nanosleep(&interval, nullptr);
         }
         if (!globalFlagSet) {
