@@ -73,6 +73,7 @@ namespace {
 void waitForEntropyInitialization(char const * filename, int const fd) {
     // Ensure this is executed only once:
     static bool entropyPoolInitialized = false;
+    static ::timespec const interval = { 0, 10000000 }; // 10ms
     if (!entropyPoolInitialized) {
         bool globalFlagSet = false;
         key_t const key = ::ftok(filename, 's');
@@ -100,7 +101,7 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
                                 errno);
             if (estimatedEntropyBits >= 256)
                 break;
-            sleep(1u);
+            ::nanosleep(&interval, nullptr);
         }
         if (!globalFlagSet) {
             int const shmid = ::shmget(key, 1, 0644 | IPC_CREAT | IPC_EXCL);
