@@ -101,6 +101,7 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
                                 errno);
             if (estimatedEntropyBits >= 256)
                 break;
+            assert(estimatedEntropyBits > 0);
             ::nanosleep(&interval, nullptr);
         }
         if (!globalFlagSet) {
