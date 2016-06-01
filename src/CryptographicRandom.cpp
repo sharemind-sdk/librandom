@@ -96,7 +96,7 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
             /* According to `man 4 urandom` the size returned is the same as
                from /proc/sys/kernel/random/entropy_avail which is the number of
                estimated BITS (!!!) of entropy. */
-            if (ioctl(fd, RNDGETENTCNT, &estimatedEntropyBits) != 0)
+            if (::ioctl(fd, RNDGETENTCNT, &estimatedEntropyBits) != 0)
                 SHAREMIND_ABORT("ioctl(RNDGETENTCNT) failed with errno = %d!\n",
                                 errno);
             if (estimatedEntropyBits >= 256)
