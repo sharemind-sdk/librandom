@@ -52,6 +52,8 @@
 #else
     #warning No getrandom(2) detected!
     #warning Falling back to slow alternative of reading from /dev/u?random.
+    #include <chrono>
+    #include <condition_variable>
     #include <fcntl.h>
     #include <linux/random.h>
     #include <mutex>
@@ -67,13 +69,16 @@
 #ifndef SHAREMIND_HAVE_LINUX_GETRANDOM
 namespace {
 
+std::mutex wFEI_mutex;
+std::condition_variable wFEI_cond;
+bool entropyPoolInitialized = false;
+
 /* Always wait for at least 256 bits of entropy which is required for the Linux
    kernel to initialize its entropy pool for the CSPRNG used for both
    /dev/random and /dev/urandom. */
 void waitForEntropyInitialization(char const * filename, int const fd) {
     // Ensure this is executed only once:
-    static bool entropyPoolInitialized = false;
-    static ::timespec const interval = { 0, 10000000 }; // 10ms
+    std::unique_lock<std::mutex> lock(wFEI_mutex);
     if (!entropyPoolInitialized) {
         bool globalFlagSet = false;
         key_t const key = ::ftok(filename, 's');
@@ -110,8 +115,13 @@ void waitForEntropyInitialization(char const * filename, int const fd) {
                 needEntropy -= entropyIncrease;
             }
             lastEstimatedEntropyBits = estimatedEntropyBits;
-            ::nanosleep(&interval, nullptr);
+            if (wFEI_cond.wait_for(lock,
+                                   std::chrono::milliseconds(10),
+                                   []() noexcept
+                                   { return entropyPoolInitialized; }))
+                return;
         }
+        wFEI_cond.notify_all();
         if (!globalFlagSet) {
             int const shmid = ::shmget(key, 1, 0644 | IPC_CREAT | IPC_EXCL);
             if (shmid == -1) {
