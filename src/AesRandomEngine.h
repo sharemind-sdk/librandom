@@ -28,14 +28,6 @@ namespace sharemind {
 /** A random engine based on AES in CTR mode. */
 class AesRandomEngine: public RandomEngine {
 
-public: /* Types: */
-
-    SHAREMIND_DEFINE_EXCEPTION(RandomEngine::Exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
-            Exception,
-            InitException,
-            "Failed to initialize AES random engine!");
-
 public: /* Methods: */
 
     AesRandomEngine(const void * seed);

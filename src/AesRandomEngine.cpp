@@ -97,7 +97,7 @@ inline void aesSeedCtx(EVP_CIPHER_CTX * ctx,
                          unsigned char * iv) noexcept
 {
     if (!EVP_EncryptInit_ex (ctx, aes_cipher(), NULL, key, iv))
-        throw AesRandomEngine::InitException{};
+        SHAREMIND_ABORT("aesSeedCtx: Initializing AES context failed!");
 }
 
 void Inner::aesSeed(unsigned char * key, unsigned char * iv) noexcept {
