@@ -1,6 +1,8 @@
 #include "../src/ChaCha20RandomEngine.h"
 
 #include <array>
+#include <sharemind/TestAssert.h>
+
 
 using namespace sharemind;
 
@@ -37,8 +39,8 @@ int main() {
         const uint32_t v3 = engine.randomValue<uint32_t>(); // counter = 2
         const uint32_t v4 = engine.randomValue<uint32_t>(); // counter = 3
         (void) v1; (void) v2; (void) v3; (void) v4;
-        assert (firstBlock[i] == v2);
-        assert (secondBlock[i] == v3);
+        SHAREMIND_TESTASSERT(firstBlock[i] == v2);
+        SHAREMIND_TESTASSERT(secondBlock[i] == v3);
     }
 
     return 0;

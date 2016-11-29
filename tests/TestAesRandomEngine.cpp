@@ -1,6 +1,8 @@
 #include "../src/AesRandomEngine.h"
 
 #include <array>
+#include <sharemind/TestAssert.h>
+
 
 #define AES_TEST_BLOCK_SIZE 16
 #define AES_TEST_SEED_SIZE 32
@@ -12,7 +14,7 @@ using namespace sharemind;
 
 // Check for the correct seed size
 void test0 () {
-    assert (AesRandomEngine::seedSize() == AES_TEST_SEED_SIZE);
+    SHAREMIND_TESTASSERT(AesRandomEngine::seedSize() == AES_TEST_SEED_SIZE);
 }
 
 // Check with test vector from RFC3686
@@ -49,12 +51,12 @@ void test1 () {
 
     for (uint8_t c : firstBlock) {
         const uint8_t v = engine.randomValue<uint8_t>();
-        assert (c == v);
+        SHAREMIND_TESTASSERT(c == v);
     }
 
     std::array<uint8_t, 16> tempBlock;
     engine.fillBytes(tempBlock.data(), tempBlock.size());
-    assert (tempBlock == secondBlock);
+    SHAREMIND_TESTASSERT(tempBlock == secondBlock);
 }
 
 // Check with test vector from "NIST Special Publication 800-38A"
@@ -92,7 +94,7 @@ void test2 () {
     }};
 
     engine.fillBytes(testBlock.data(), testBlock.size());
-    assert (testBlock == firstBlock);
+    SHAREMIND_TESTASSERT(testBlock == firstBlock);
 
     const AesBlock secondBlock {{
         0xe4, 0x56, 0x62, 0x7f, 0x90, 0x84, 0xb2, 0xc4,
@@ -100,7 +102,7 @@ void test2 () {
     }};
 
     engine.fillBytes(testBlock.data(), testBlock.size());
-    assert (testBlock == secondBlock);
+    SHAREMIND_TESTASSERT(testBlock == secondBlock);
 
     const AesBlock thirdBlock {{
         0xae, 0xea, 0x28, 0xdc, 0xd7, 0x71, 0xad, 0x27,
@@ -108,7 +110,7 @@ void test2 () {
     }};
 
     engine.fillBytes(testBlock.data(), testBlock.size());
-    assert (testBlock == thirdBlock);
+    SHAREMIND_TESTASSERT(testBlock == thirdBlock);
 }
 
 int main () {
