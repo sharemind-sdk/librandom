@@ -52,24 +52,16 @@ void RandomBufferAgent::fillBytes(void * buffer,
     }
 }
 
-namespace {
-
-struct RandomEngineWriter {
-    using Exception = int;
-    size_t operator()(void * buffer, size_t const bufferSize) const noexcept {
-        engine.fillBytes(buffer, bufferSize);
-        return bufferSize;
-    }
-    RandomEngine & engine;
-};
-
-} // anonymous namespace
-
 void RandomBufferAgent::fillerThread() noexcept {
     struct GracefulStop {};
     try {
         for (;;) {
-            m_buffer.write(RandomEngineWriter{*m_engine});
+            m_buffer.write(
+                        [this](void * buffer, size_t const bufferSize) noexcept
+                        {
+                            m_engine->fillBytes(buffer, bufferSize);
+                            return bufferSize;
+                        });
             m_buffer.waitSpaceAvailable(
                         Stoppable::TestActor<GracefulStop>{m_stoppable},
                         sharemind::StaticLoopDuration<10>{});
