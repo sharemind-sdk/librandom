@@ -56,7 +56,7 @@ namespace {
 
 struct RandomEngineWriter {
     using Exception = int;
-    size_t operator()(void * buffer, size_t const bufferSize) noexcept {
+    size_t operator()(void * buffer, size_t const bufferSize) const noexcept {
         engine.fillBytes(buffer, bufferSize);
         return bufferSize;
     }
