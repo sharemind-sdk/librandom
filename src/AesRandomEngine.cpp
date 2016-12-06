@@ -68,6 +68,9 @@ struct Inner {
         VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Inner));
         #endif
 
+        if (!m_ctx_inner || !m_ctx_outer)
+            SHAREMIND_ABORT("Failed to construct EVP_CIPHER_CTX");
+
         EVP_CIPHER_CTX_set_padding(m_ctx_inner, 0);
         EVP_CIPHER_CTX_set_padding(m_ctx_outer, 0);
 
