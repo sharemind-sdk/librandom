@@ -59,17 +59,17 @@ inline const EVP_CIPHER* aes_cipher() noexcept {
 struct Inner {
 
     inline Inner(const void * memptr_) noexcept
-        : m_counter_inner (0)
+        : m_ctx_inner(EVP_CIPHER_CTX_new())
+        , m_ctx_outer(EVP_CIPHER_CTX_new())
+        , m_counter_inner (0)
         , block_consumed (AES_INTERNAL_BUFFER)
     {
         #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
         VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Inner));
         #endif
 
-        EVP_CIPHER_CTX_init(&m_ctx_inner);
-        EVP_CIPHER_CTX_set_padding(&m_ctx_inner, 0);
-        EVP_CIPHER_CTX_init(&m_ctx_outer);
-        EVP_CIPHER_CTX_set_padding(&m_ctx_outer, 0);
+        EVP_CIPHER_CTX_set_padding(m_ctx_inner, 0);
+        EVP_CIPHER_CTX_set_padding(m_ctx_outer, 0);
 
         uint8_t temp[AES_STATIC_KEY_SIZE];
         memcpy(temp, memptr_, AesRandomEngine::seedSize());
@@ -77,16 +77,16 @@ struct Inner {
     }
 
     ~Inner() noexcept {
-        EVP_CIPHER_CTX_cleanup(&m_ctx_outer);
-        EVP_CIPHER_CTX_cleanup(&m_ctx_inner);
+        EVP_CIPHER_CTX_free(m_ctx_outer);
+        EVP_CIPHER_CTX_free(m_ctx_inner);
     }
 
     void aesSeed(unsigned char * key, unsigned char * iv) noexcept;
     void aesReseedInner() noexcept;
     void aesNextBlock() noexcept;
 
-    EVP_CIPHER_CTX m_ctx_inner;
-    EVP_CIPHER_CTX m_ctx_outer;
+    EVP_CIPHER_CTX* m_ctx_inner;
+    EVP_CIPHER_CTX* m_ctx_outer;
     uint64_t m_counter_inner;
     uint64_t block_consumed; // number of bytes that have been consumed from the block
     uint8_t block[AES_INTERNAL_BUFFER]; // buffer of generated randomness
@@ -101,7 +101,7 @@ inline void aesSeedCtx(EVP_CIPHER_CTX * ctx,
 }
 
 void Inner::aesSeed(unsigned char * key, unsigned char * iv) noexcept {
-    aesSeedCtx(&m_ctx_outer, key, iv);
+    aesSeedCtx(m_ctx_outer, key, iv);
     aesReseedInner();
 }
 
@@ -114,7 +114,7 @@ void Inner::aesReseedInner() noexcept {
 
     int bytesWritten = 0;
     assert(plaintextSize <= std::numeric_limits<int>::max());
-    if (!EVP_EncryptUpdate(&m_ctx_outer,
+    if (!EVP_EncryptUpdate(m_ctx_outer,
                            &seed[0],
                            &bytesWritten,
                            plaintext,
@@ -125,12 +125,12 @@ void Inner::aesReseedInner() noexcept {
            && static_cast<decltype(plaintextSize)>(bytesWritten)
               == plaintextSize);
 
-    if (!EVP_EncryptFinal_ex(&m_ctx_outer, &seed[0] + bytesWritten, &bytesWritten))
+    if (!EVP_EncryptFinal_ex(m_ctx_outer, &seed[0] + bytesWritten, &bytesWritten))
         SHAREMIND_ABORT("aesReseedInner: EncryptFinal failed!");
 
     assert(bytesWritten == 0);
     const auto keyLen = EVP_CIPHER_key_length(aes_cipher());
-    aesSeedCtx(&m_ctx_inner, &seed[0], &seed[0] + keyLen);
+    aesSeedCtx(m_ctx_inner, &seed[0], &seed[0] + keyLen);
 }
 
 void Inner::aesNextBlock() noexcept {
@@ -144,11 +144,11 @@ void Inner::aesNextBlock() noexcept {
     unsigned char plaintext[AES_INTERNAL_BUFFER] = { };
 
     int bytesWritten = 0;
-    if (!EVP_EncryptUpdate(&m_ctx_inner, &block[0], &bytesWritten, plaintext, AES_INTERNAL_BUFFER))
+    if (!EVP_EncryptUpdate(m_ctx_inner, &block[0], &bytesWritten, plaintext, AES_INTERNAL_BUFFER))
         SHAREMIND_ABORT("Encryption failed.");
 
     assert(bytesWritten == AES_INTERNAL_BUFFER);
-    if (!EVP_EncryptFinal_ex(&m_ctx_inner, &block[0] + bytesWritten, &bytesWritten))
+    if (!EVP_EncryptFinal_ex(m_ctx_inner, &block[0] + bytesWritten, &bytesWritten))
         SHAREMIND_ABORT("EncryptFinal failed.");
 
     m_counter_inner += AES_PARALLEL_BLOCKS;
