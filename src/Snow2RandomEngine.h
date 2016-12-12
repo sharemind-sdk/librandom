@@ -32,7 +32,7 @@ class Snow2RandomEngine: public RandomEngine {
 
 public: /* Types: */
 
-    constexpr static size_t const SeedSize = 48u;
+    constexpr static std::size_t SeedSize = 48u;
 
 public: /* Methods: */
 

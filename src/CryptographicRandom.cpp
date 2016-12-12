@@ -239,8 +239,8 @@ SHAREMIND_EXTERN_C_END
 int main() {
     using ElemType = uint8_t;
     static_assert(sizeof(ElemType) == 1u, "");
-    static constexpr size_t const ARRAY_SIZE = 10u;
-    static constexpr ElemType const ARRAY_FILL = 42;
+    static constexpr std::size_t ARRAY_SIZE = 10u;
+    static constexpr ElemType ARRAY_FILL = 42;
     std::vector<ElemType> v(ARRAY_SIZE, ARRAY_FILL);
     auto const printVector = [&v]{
         for (auto const i : v)

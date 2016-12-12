@@ -31,18 +31,18 @@ class ChaCha20RandomEngine: public RandomEngine {
 
 private: /* Constants: */
 
-    static constexpr size_t const CHACHA20_KEY_SIZE = 32u;
-    static constexpr size_t const CHACHA20_BLOCK_SIZE = 64u;
-    static constexpr size_t const CHACHA20_NONCE_SIZE = 8u;
+    static constexpr std::size_t CHACHA20_KEY_SIZE = 32u;
+    static constexpr std::size_t CHACHA20_BLOCK_SIZE = 64u;
+    static constexpr std::size_t CHACHA20_NONCE_SIZE = 8u;
 
 
-    static constexpr size_t const CHACHA20_PARALLEL_BLOCK_COUNT = 4u;
-    static constexpr size_t const CHACHA20_BUFFER_SIZE =
+    static constexpr std::size_t CHACHA20_PARALLEL_BLOCK_COUNT = 4u;
+    static constexpr std::size_t CHACHA20_BUFFER_SIZE =
             CHACHA20_PARALLEL_BLOCK_COUNT * CHACHA20_BLOCK_SIZE;
 
 public: /* Constants: */
 
-    static constexpr size_t const SeedSize =
+    static constexpr std::size_t SeedSize =
             CHACHA20_KEY_SIZE + CHACHA20_NONCE_SIZE;
 
 public: /* Methods: */
