@@ -20,6 +20,7 @@
 
 #include "RandomBufferAgent.h"
 
+#include <sharemind/Durations.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
 
 
