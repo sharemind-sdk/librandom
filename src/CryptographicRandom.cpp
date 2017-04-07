@@ -221,10 +221,10 @@ SHAREMIND_LIBRANDOM_NBR(sharemindCryptographicURandomNonblocking,
         } \
     }
 
-SHAREMIND_LIBRANDOM_BR(sharemindCyptographicRandom,
+SHAREMIND_LIBRANDOM_BR(sharemindCryptographicRandom,
                        GRND_RANDOM,
                        blockingCryptoRandomFile)
-SHAREMIND_LIBRANDOM_BR(sharemindCyptographicURandom,
+SHAREMIND_LIBRANDOM_BR(sharemindCryptographicURandom,
                        0,
                        blockingCryptoURandomFile)
 

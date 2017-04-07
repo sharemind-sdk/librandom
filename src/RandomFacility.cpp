@@ -246,10 +246,10 @@ RandomFacility::RandomFacility(
 {}
 
 void RandomFacility::RandomBlocking(void * memptr, size_t size) const noexcept
-{ sharemindCyptographicRandom(memptr, size); }
+{ sharemindCryptographicRandom(memptr, size); }
 
 void RandomFacility::URandomBlocking(void * memptr, size_t size) const noexcept
-{ sharemindCyptographicURandom(memptr, size); }
+{ sharemindCryptographicURandom(memptr, size); }
 
 size_t RandomFacility::RandomNonblocking(void * memptr, size_t size) const noexcept
 { return sharemindCryptographicRandomNonblocking(memptr, size); }

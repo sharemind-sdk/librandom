@@ -36,8 +36,8 @@ size_t sharemindCryptographicRandomNonblocking(void * buf,
 size_t sharemindCryptographicURandomNonblocking(void * buf,
                                                 size_t bufSize) noexcept;
 
-void sharemindCyptographicRandom(void * buf, size_t bufSize) noexcept;
-void sharemindCyptographicURandom(void * buf, size_t bufSize) noexcept;
+void sharemindCryptographicRandom(void * buf, size_t bufSize) noexcept;
+void sharemindCryptographicURandom(void * buf, size_t bufSize) noexcept;
 
 SHAREMIND_EXTERN_C_END
 
@@ -53,9 +53,9 @@ inline size_t cryptographicURandomNonblocking(void * buf,
 { return ::sharemindCryptographicURandomNonblocking(buf, bufSize); }
 
 inline void cryptographicRandom(void * buf, size_t bufSize) noexcept
-{ return ::sharemindCyptographicRandom(buf, bufSize); }
+{ return ::sharemindCryptographicRandom(buf, bufSize); }
 inline void cryptographicURandom(void * buf, size_t bufSize) noexcept
-{ return ::sharemindCyptographicURandom(buf, bufSize); }
+{ return ::sharemindCryptographicURandom(buf, bufSize); }
 
 template <typename T>
 inline T cryptographicRandom() noexcept {
