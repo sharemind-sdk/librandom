@@ -41,6 +41,8 @@ public: /* Methods: */
     RandomFacility(
             RandomEngineFactory::Configuration const & defaultFactoryConf);
 
+    void clear() noexcept { return m_scopedEngines.clear(); }
+
     SharemindRandomFacility & facility() noexcept
     { return static_cast<SharemindRandomFacility &>(*this); }
 
