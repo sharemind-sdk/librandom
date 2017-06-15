@@ -20,11 +20,15 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(SharemindLibRandom CXX)
 
+SET(CPACK_PACKAGE_VERSION_MAJOR "0")
+SET(CPACK_PACKAGE_VERSION_MINOR "2")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+SET(SHAREMIND_LIBRANDOM_VERSION
+    "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/config.local" OPTIONAL)
 INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
 INCLUDE(CheckCXXSourceCompiles)
-
-SET(SHAREMIND_LIBRANDOM_VERSION "0.2.0")
 
 FIND_PACKAGE(OpenSSL REQUIRED)
 FIND_PACKAGE(SharemindCHeaders REQUIRED)
@@ -133,10 +137,11 @@ SET_TARGET_PROPERTIES("librandom" PROPERTIES
                       SOVERSION "0.2")
 TARGET_LINK_LIBRARIES("librandom"
                       ${SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES})
-INSTALL(TARGETS "librandom" LIBRARY DESTINATION "lib")
+INSTALL(TARGETS "librandom" LIBRARY DESTINATION "lib" COMPONENT lib)
 
 INSTALL(FILES ${SHAREMIND_LIBRANDOM_HEADERS}
-        DESTINATION "include/sharemind/Random")
+        DESTINATION "include/sharemind/Random"
+        COMPONENT dev)
 
 FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_INFILES
      "${CMAKE_CURRENT_SOURCE_DIR}/*.in")
@@ -164,12 +169,35 @@ CONFIGURE_FILE(
   @ONLY)
 INSTALL(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfig.cmake"
-  DESTINATION "lib/SharemindLibRandom")
+  DESTINATION "lib/SharemindLibRandom"
+  COMPONENT dev)
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/SharemindLibRandomConfigVersion.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfigVersion.cmake"
   @ONLY)
 INSTALL(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfigVersion.cmake"
-  DESTINATION "lib/SharemindLibRandom")
+  DESTINATION "lib/SharemindLibRandom"
+  COMPONENT dev)
 
+# Packaging:
+SET(CPACK_PACKAGE_VENDOR "Cybernetica AS")
+SET(CPACK_PACKAGE_CONTACT "Sharemind packaging <sharemind-packaging@cyber.ee>")
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_NAME "libsharemind-random")
+SET(CPACK_DEBIAN_PACKAGE_RELEASE "cyber1")
+SET(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
+SET(CPACK_DEB_COMPONENT_INSTALL "ON")
+SET(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+
+SET(CPACK_DEBIAN_LIB_PACKAGE_NAME "libsharemind-random")
+SET(CPACK_COMPONENT_DEV_DESCRIPTION "Sharemind Random library development headers")
+SET(CPACK_COMPONENT_LIB_DESCRIPTION "Sharemind Random library")
+SET(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS
+    "libsharemind-random (= ${SHAREMIND_LIBRANDOM_VERSION}), sharemind-cxxheaders (>= 0.1.0), sharemind-cheaders (>= 0.1.0), libc6-dev (>= 2.19), libstdc++-dev, linux-libc-dev, libssl-dev, libgcc-4.8-dev | libgcc-4.9-dev | libgcc-5-dev | libgcc-6-dev | libgcc-7-dev")
+SET(CPACK_DEBIAN_LIB_PACKAGE_DEPENDS
+    "libstdc++6 (>= 4.8.0), libc6 (>= 2.19), libssl1.0.0")
+SET(CPACK_DEBIAN_DEV_PACKAGE_SECTION "libdevel")
+SET(CPACK_DEBIAN_LIB_PACKAGE_SECTION "libs")
+SET(CPACK_DEBIAN_DEV_PACKAGE_ARCHITECTURE "any")
+INCLUDE(CPack)
