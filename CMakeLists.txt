@@ -198,7 +198,7 @@ SET(CPACK_COMPONENT_LIB_DESCRIPTION "Sharemind Random library")
 SET(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS
     "libsharemind-random (= ${SHAREMIND_LIBRANDOM_VERSION}), libsharemind-cxxheaders-dev (>= 0.1.0), libsharemind-cheaders-dev (>= 0.1.0), libc6-dev (>= 2.19), libstdc++-dev, linux-libc-dev, libssl-dev, libgcc-4.8-dev | libgcc-4.9-dev | libgcc-5-dev | libgcc-6-dev | libgcc-7-dev")
 SET(CPACK_DEBIAN_LIB_PACKAGE_DEPENDS
-    "libstdc++6 (>= 4.8.0), libc6 (>= 2.19), libssl1.0.0")
+    "libstdc++6 (>= 4.8.0), libc6 (>= 2.19), libssl1.0.0 | libssl1.0.2")
 SET(CPACK_DEBIAN_DEV_PACKAGE_SECTION "libdevel")
 SET(CPACK_DEBIAN_LIB_PACKAGE_SECTION "libs")
 SET(CPACK_DEBIAN_DEV_PACKAGE_ARCHITECTURE "any")
