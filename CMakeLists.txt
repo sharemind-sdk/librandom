@@ -140,19 +140,16 @@ SharemindUseCMakeFindFiles()
 
 
 # Tests:
-FILE(GLOB_RECURSE SharemindLibRandom_TESTS
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
-FOREACH(test IN LISTS SharemindLibRandom_TESTS)
-    SharemindAddSimpleTest("${test}"
-        INCLUDE_DIRECTORIES
-            ${SharemindLibRandom_INCLUDE_DIRS}
-        LEGACY_DEFINITIONS
-            ${SharemindLibRandom_INSTALL_DEFINITIONS}
-        LINK_LIBRARIES
-            ${SharemindLibRandom_LINK_LIBRARIES}
-            "librandom"
-    )
-ENDFOREACH()
+SharemindAddSimpleTests(
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
+    INCLUDE_DIRECTORIES
+        ${SharemindLibRandom_INCLUDE_DIRS}
+    LEGACY_DEFINITIONS
+        ${SharemindLibRandom_INSTALL_DEFINITIONS}
+    LINK_LIBRARIES
+        ${SharemindLibRandom_LINK_LIBRARIES}
+        "librandom"
+)
 
 
 # Packaging:
