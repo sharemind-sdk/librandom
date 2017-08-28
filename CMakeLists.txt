@@ -17,26 +17,22 @@
 # For further information, please contact us at sharemind@cyber.ee.
 #
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(SharemindLibRandom CXX)
-
-SET(CPACK_PACKAGE_VERSION_MAJOR "0")
-SET(CPACK_PACKAGE_VERSION_MINOR "2")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
-SET(SHAREMIND_LIBRANDOM_SOVERSION
-    "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
-SET(SHAREMIND_LIBRANDOM_VERSION
-    "${SHAREMIND_LIBRANDOM_SOVERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(SharemindLibRandom VERSION 0.2.0 LANGUAGES CXX)
 
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/config.local" OPTIONAL)
 INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
-INCLUDE(CheckCXXSourceCompiles)
+
+FIND_PACKAGE(SharemindCMakeHelpers REQUIRED)
+
+SharemindSetProjectVersion()
 
 FIND_PACKAGE(OpenSSL REQUIRED)
 FIND_PACKAGE(SharemindCHeaders REQUIRED)
 FIND_PACKAGE(SharemindCxxHeaders REQUIRED)
 
 # Check if we have SSE2 support via emmintrin.h header
+INCLUDE(CheckCXXSourceCompiles)
 Check_CXX_Source_Compiles(
 "
 #include <emmintrin.h>
@@ -70,135 +66,130 @@ IF(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Release"))
     ENDIF()
 ENDIF()
 
-SET(SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES "")
-LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES
+SharemindNewUniqueList(SharemindLibRandom_LINK_LIBRARIES
     ${OPENSSL_LIBRARIES}
     ${SharemindCHeaders_LIBRARIES}
     ${SharemindCxxHeaders_LIBRARIES}
 )
-LIST(REMOVE_DUPLICATES SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES)
-
-SET(SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS "")
-LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS
+SharemindNewUniqueList(SharemindLibRandom_INCLUDE_DIRS
     "${OPENSSL_INCLUDE_DIR}"
     ${SharemindCHeaders_INCLUDE_DIRS}
     ${SharemindCxxHeaders_INCLUDE_DIRS}
 )
 IF(VALGRIND_INCLUDE_DIR)
-    LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS
-         "${VALGRIND_INCLUDE_DIR}")
+    SharemindListAppendUnique(SharemindLibRandom_INCLUDE_DIRS
+        "${VALGRIND_INCLUDE_DIR}"
+    )
 ENDIF()
-LIST(REMOVE_DUPLICATES SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS)
 
-SET(SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS "")
-LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
+SharemindNewUniqueList(SharemindLibRandom_DEFINITIONS
     ${SharemindCHeaders_DEFINITIONS}
     ${SharemindCxxHeaders_DEFINITIONS}
 )
 IF(VALGRIND_INCLUDE_DIR)
-    LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
-         "-DSHAREMIND_LIBRANDOM_HAVE_VALGRIND")
+    SharemindListAppendUnique(SharemindLibRandom_DEFINITIONS
+        "-DSHAREMIND_LIBRANDOM_HAVE_VALGRIND"
+    )
 ENDIF()
 IF(HAVE_EMMINTRIN_SSE2)
-    LIST(APPEND SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS
-         "-DSHAREMIND_HAVE_EMMINTRIN_SSE2")
+    SharemindListAppendUnique(SharemindLibRandom_DEFINITIONS
+        "-DSHAREMIND_HAVE_EMMINTRIN_SSE2"
+    )
 ENDIF()
-LIST(REMOVE_DUPLICATES SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS)
 
 
-SET(SHAREMIND_LIBRANDOM_INSTALL_LINK_LIBRARIES
-    ${SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES}
-    "-L${CMAKE_INSTALL_PREFIX}/lib" "-lsharemind_random")
-SET(SHAREMIND_LIBRANDOM_INSTALL_INCLUDE_DIRS
-    "${CMAKE_INSTALL_PREFIX}/include"
-    ${SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS})
-SET(SHAREMIND_LIBRANDOM_INSTALL_DEFINITIONS
-    ${SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS})
-LIST(REMOVE_DUPLICATES SHAREMIND_LIBRANDOM_INSTALL_INCLUDE_DIRS)
+# Headers:
+FILE(GLOB_RECURSE SharemindLibRandom_HEADERS
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
+INSTALL(FILES ${SharemindLibRandom_HEADERS}
+        DESTINATION "include/sharemind/Random"
+        COMPONENT "dev")
 
-INCLUDE_DIRECTORIES(${SHAREMIND_LIBRANDOM_EXTERNAL_INCLUDE_DIRS})
-ADD_DEFINITIONS(${SHAREMIND_LIBRANDOM_EXTERNAL_DEFINITIONS})
-ADD_COMPILE_OPTIONS(
-  "-std=c++11" "-Wall" "-Wextra" "-O2" "-fPIC"
-  "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-ggdb>"
-  "$<$<NOT:$<STREQUAL:$<CONFIGURATION>,Release>>:-fno-omit-frame-pointer>"
-  "$<$<STREQUAL:$<CONFIGURATION>,Release>:-DNDEBUG>"
-  "$<$<STREQUAL:$<CONFIGURATION>,Release>:-fomit-frame-pointer>"
+# The library:
+SharemindSetCxx11CompileOptions()
+
+FILE(GLOB_RECURSE SharemindLibRandom_SOURCES
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+SharemindAddSharedLibrary("librandom"
+    OUTPUT_NAME "sharemind_random"
+    SOURCES
+        ${SharemindLibRandom_SOURCES}
+        ${SharemindLibRandom_HEADERS}
+    INCLUDE_DIRECTORIES
+        ${SharemindLibRandom_INCLUDE_DIRS}
+    LEGACY_DEFINITIONS
+        ${SharemindLibRandom_DEFINITIONS}
+    LINK_LIBRARIES
+        ${SharemindLibRandom_LINK_LIBRARIES}
 )
 
-FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_SOURCES
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_HEADERS
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
-ADD_LIBRARY("librandom" SHARED
-    ${SHAREMIND_LIBRANDOM_SOURCES}
-    ${SHAREMIND_LIBRANDOM_HEADERS})
-SET_TARGET_PROPERTIES("librandom" PROPERTIES
-                      OUTPUT_NAME "sharemind_random"
-                      VERSION "${SHAREMIND_LIBRANDOM_VERSION}"
-                      SOVERSION "${SHAREMIND_LIBRANDOM_SOVERSION}")
-TARGET_LINK_LIBRARIES("librandom"
-                      ${SHAREMIND_LIBRANDOM_EXTERNAL_LINK_LIBRARIES})
-INSTALL(TARGETS "librandom" LIBRARY DESTINATION "lib" COMPONENT lib)
 
-INSTALL(FILES ${SHAREMIND_LIBRANDOM_HEADERS}
-        DESTINATION "include/sharemind/Random"
-        COMPONENT dev)
+# Install CMake files:
+SharemindNewUniqueList(SharemindLibRandom_INSTALL_INCLUDE_DIRS
+    "${CMAKE_INSTALL_PREFIX}/include"
+    ${SharemindLibRandom_INCLUDE_DIRS}
+)
+SharemindNewUniqueList(SharemindLibRandom_INSTALL_DEFINITIONS
+    ${SharemindLibRandom_DEFINITIONS}
+)
+SharemindNewUniqueList(SharemindLibRandom_INSTALL_LINK_LIBRARIES
+    ${SharemindLibRandom_LINK_LIBRARIES}
+    "-L${CMAKE_INSTALL_PREFIX}/lib" "-lsharemind_random"
+)
+SharemindUseCMakeFindFiles()
 
-FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_INFILES
-     "${CMAKE_CURRENT_SOURCE_DIR}/*.in")
-ADD_CUSTOM_TARGET("include_SHAREMIND_LIBRANDOM_INFILES_in_IDE"
-                  SOURCES ${SHAREMIND_LIBRANDOM_INFILES})
 
 # Tests:
-ENABLE_TESTING()
-ADD_CUSTOM_TARGET(check COMMAND "${CMAKE_CTEST_COMMAND}")
-FILE(GLOB_RECURSE SHAREMIND_LIBRANDOM_TESTS
+FILE(GLOB_RECURSE SharemindLibRandom_TESTS
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp")
-ADD_CUSTOM_TARGET("include_SHAREMIND_LIBRANDOM_TESTS_in_IDE"
-    SOURCES ${SHAREMIND_LIBRANDOM_TESTS})
-FOREACH(test IN LISTS SHAREMIND_LIBRANDOM_TESTS)
-    GET_FILENAME_COMPONENT(testName "${test}" NAME_WE)
-    ADD_EXECUTABLE("testImpl_${testName}" EXCLUDE_FROM_ALL "${test}")
-    TARGET_LINK_LIBRARIES("testImpl_${testName}" librandom)
-    ADD_DEPENDENCIES(check "testImpl_${testName}")
-    ADD_TEST(NAME "test_${testName}" COMMAND "testImpl_${testName}")
+FOREACH(test IN LISTS SharemindLibRandom_TESTS)
+    SharemindAddSimpleTest("${test}"
+        INCLUDE_DIRECTORIES
+            ${SharemindLibRandom_INCLUDE_DIRS}
+        LEGACY_DEFINITIONS
+            ${SharemindLibRandom_INSTALL_DEFINITIONS}
+        LINK_LIBRARIES
+            ${SharemindLibRandom_LINK_LIBRARIES}
+            "librandom"
+    )
 ENDFOREACH()
 
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/SharemindLibRandomConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfig.cmake"
-  @ONLY)
-INSTALL(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfig.cmake"
-  DESTINATION "lib/SharemindLibRandom"
-  COMPONENT dev)
-CONFIGURE_FILE(
-  "${CMAKE_CURRENT_SOURCE_DIR}/SharemindLibRandomConfigVersion.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfigVersion.cmake"
-  @ONLY)
-INSTALL(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/SharemindLibRandomConfigVersion.cmake"
-  DESTINATION "lib/SharemindLibRandom"
-  COMPONENT dev)
 
 # Packaging:
-SET(CPACK_PACKAGE_VENDOR "Cybernetica AS")
-SET(CPACK_PACKAGE_CONTACT "Sharemind packaging <sharemind-packaging@cyber.ee>")
-SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_NAME "libsharemind-random")
-SET(CPACK_DEBIAN_PACKAGE_RELEASE "cyber1")
-SET(CPACK_DEBIAN_COMPRESSION_TYPE "xz")
-SET(CPACK_DEB_COMPONENT_INSTALL "ON")
-SET(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
-
-SET(CPACK_DEBIAN_LIB_PACKAGE_NAME "libsharemind-random")
-SET(CPACK_COMPONENT_DEV_DESCRIPTION "Sharemind Random library development headers")
-SET(CPACK_COMPONENT_LIB_DESCRIPTION "Sharemind Random library")
-SET(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS
-    "libsharemind-random (= ${SHAREMIND_LIBRANDOM_VERSION}), libsharemind-cxxheaders-dev (>= 0.1.0), libsharemind-cheaders-dev (>= 0.1.0), libc6-dev (>= 2.19), libstdc++-dev, linux-libc-dev, libssl-dev, libgcc-4.8-dev | libgcc-4.9-dev | libgcc-5-dev | libgcc-6-dev | libgcc-7-dev")
-SET(CPACK_DEBIAN_LIB_PACKAGE_DEPENDS
-    "libstdc++6 (>= 4.8.0), libc6 (>= 2.19), libssl1.0.0 | libssl1.0.2")
-SET(CPACK_DEBIAN_DEV_PACKAGE_SECTION "libdevel")
-SET(CPACK_DEBIAN_LIB_PACKAGE_SECTION "libs")
-INCLUDE(CPack)
+SharemindSetupPackaging()
+SharemindAddComponentPackage("lib"
+    NAME "libsharemind-random"
+    DESCRIPTION "Sharemind Random library"
+    DEB_SECTION "libs"
+    DEB_DEPENDS
+        "libstdc++6 (>= 4.8.0)"
+        "libc6 (>= 2.19)"
+        "libssl1.0.0"
+        "| libssl1.0.2"
+)
+SharemindAddComponentPackage("dev"
+    NAME "libsharemind-random-dev"
+    DESCRIPTION "Sharemind Random library development headers"
+    DEB_SECTION "libdevel"
+    DEB_DEPENDS
+        "libsharemind-random (= ${SharemindLibRandom_VERSION})"
+        "libsharemind-cxxheaders-dev (>= 0.1.0)"
+        "libsharemind-cheaders-dev (>= 0.1.0)"
+        "libc6-dev (>= 2.19)"
+        "libstdc++-dev"
+        "linux-libc-dev"
+        "libssl-dev"
+        "libgcc-4.8-dev"
+        "| libgcc-4.9-dev"
+        "| libgcc-5-dev"
+        "| libgcc-6-dev"
+        "| libgcc-7-dev"
+)
+SharemindAddComponentPackage("debug"
+    NAME "libsharemind-random-dbg"
+    DESCRIPTION "Sharemind Random library debug symbols"
+    DEB_SECTION "debug"
+    DEB_DEPENDS
+        "libsharemind-random (= ${SharemindLibRandom_VERSION})"
+)
+SharemindPackagingFinalize()

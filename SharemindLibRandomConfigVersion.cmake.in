@@ -17,7 +17,7 @@
 # For further information, please contact us at sharemind@cyber.ee.
 #
 
-SET(PACKAGE_VERSION "@SHAREMIND_LIBRANDOM_VERSION@")
+SET(PACKAGE_VERSION "@SharemindLibRandom_VERSION@")
 IF(NOT SharemindLibRandom_QUIET)
     MESSAGE(STATUS "Sharemind Randomness library version: ${PACKAGE_VERSION}")
 ENDIF()
