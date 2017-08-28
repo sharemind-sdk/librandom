@@ -99,7 +99,7 @@ inline void aesSeedCtx(EVP_CIPHER_CTX * ctx,
                          unsigned char * key,
                          unsigned char * iv) noexcept
 {
-    if (!EVP_EncryptInit_ex (ctx, aes_cipher(), NULL, key, iv))
+    if (!EVP_EncryptInit_ex (ctx, aes_cipher(), nullptr, key, iv))
         SHAREMIND_ABORT("aesSeedCtx: Initializing AES context failed!");
 }
 

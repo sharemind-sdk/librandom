@@ -30,7 +30,7 @@ class NullRandomEngine: public RandomEngine {
 
 public: /* Methods: */
 
-    inline void fillBytes(void * memptr, size_t numBytes) noexcept
+    inline void fillBytes(void * memptr, size_t numBytes) noexcept override
     { memset(memptr, 0, numBytes); }
 
     static inline NullRandomEngine & instance() noexcept;
