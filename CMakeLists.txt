@@ -163,6 +163,7 @@ SharemindAddComponentPackage("lib"
         "libc6 (>= 2.19)"
         "libssl1.0.0"
         "| libssl1.0.2"
+        "| libssl1.1"
 )
 SharemindAddComponentPackage("dev"
     NAME "libsharemind-random-dev"
