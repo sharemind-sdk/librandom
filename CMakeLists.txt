@@ -125,18 +125,17 @@ SharemindAddSharedLibrary("librandom"
 
 
 # Install CMake files:
-SharemindNewUniqueList(SharemindLibRandom_INSTALL_INCLUDE_DIRS
-    "${CMAKE_INSTALL_PREFIX}/include"
-    ${SharemindLibRandom_INCLUDE_DIRS}
+SharemindCreateCMakeFindFiles(
+    INCLUDE_DIRS
+        "${CMAKE_INSTALL_PREFIX}/include"
+        ${SharemindLibRandom_INCLUDE_DIRS}
+    DEFINITIONS
+        ${SharemindLibRandom_DEFINITIONS}
+    LIBRARIES
+        ${SharemindLibRandom_LINK_LIBRARIES}
+        "-L${CMAKE_INSTALL_PREFIX}/lib"
+        "-lsharemind_random"
 )
-SharemindNewUniqueList(SharemindLibRandom_INSTALL_DEFINITIONS
-    ${SharemindLibRandom_DEFINITIONS}
-)
-SharemindNewUniqueList(SharemindLibRandom_INSTALL_LINK_LIBRARIES
-    ${SharemindLibRandom_LINK_LIBRARIES}
-    "-L${CMAKE_INSTALL_PREFIX}/lib" "-lsharemind_random"
-)
-SharemindUseCMakeFindFiles()
 
 
 # Tests:
