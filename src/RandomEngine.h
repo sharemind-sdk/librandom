@@ -40,7 +40,7 @@ public: /* Types: */
 
 public: /* Methods: */
 
-    virtual ~RandomEngine() noexcept {}
+    virtual ~RandomEngine() noexcept;
 
     virtual void fillBytes(void * buffer, size_t size) noexcept = 0;
 
