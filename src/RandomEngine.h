@@ -35,10 +35,10 @@ class RandomEngine {
 
 public: /* Types: */
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         GeneratorNotSupportedException,
-                                         "Generator not supported!");
+    SHAREMIND_DECLARE_EXCEPTION_NOINLINE(sharemind::Exception, Exception);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(
+            Exception,
+            GeneratorNotSupportedException);
 
 public: /* Methods: */
 

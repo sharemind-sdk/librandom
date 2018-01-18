@@ -22,6 +22,14 @@
 
 namespace sharemind {
 
+SHAREMIND_DEFINE_EXCEPTION_NOINLINE(sharemind::Exception,
+                                    RandomEngine::,
+                                    Exception);
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(Exception,
+                                              RandomEngine::,
+                                              GeneratorNotSupportedException,
+                                              "Generator not supported!");
+
 RandomEngine::~RandomEngine() noexcept {}
 
 } /* namespace sharemind { */
