@@ -26,6 +26,8 @@
 #include <cstdlib>
 #include <exception>
 #include <sharemind/Exception.h>
+#include <sharemind/ExceptionMacros.h>
+
 
 namespace sharemind {
 
