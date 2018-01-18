@@ -38,29 +38,20 @@ public: /* Types: */
 
     using Configuration = SharemindRandomEngineConf;
 
-    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
-    SHAREMIND_DEFINE_EXCEPTION(Exception, RandomCtorSeedException);
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         RandomCtorGeneratorNotSupported,
-                                         "Unsupported generator");
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
-                                         RandomCtorOtherError,
-                                         "Failed to construct the generator");
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedException,
-                                         RandomCtorSeedTooShort,
-                                         "Provided seed is too short");
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(RandomCtorSeedException,
-                                         RandomCtorSeedSelfGenerateError,
-                                         "Failed to self-generate a seed");
-
-    SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(
+    SHAREMIND_DECLARE_EXCEPTION_NOINLINE(sharemind::Exception, Exception);
+    SHAREMIND_DECLARE_EXCEPTION_NOINLINE(Exception, RandomCtorSeedException);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(
+            Exception,
+            RandomCtorGeneratorNotSupported);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(Exception,
+                                                   RandomCtorOtherError);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(RandomCtorSeedException,
+                                                   RandomCtorSeedTooShort);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(
             RandomCtorSeedException,
-            RandomCtorSeedNotSupported,
-            "Providing a fixed seed is not supported by this generator");
+            RandomCtorSeedSelfGenerateError);
+    SHAREMIND_DECLARE_EXCEPTION_CONST_MSG_NOINLINE(RandomCtorSeedException,
+                                                   RandomCtorSeedNotSupported);
 
 public: /* Methods: */
 

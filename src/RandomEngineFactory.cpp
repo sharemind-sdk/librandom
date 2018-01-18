@@ -40,6 +40,35 @@
 
 namespace sharemind {
 
+SHAREMIND_DEFINE_EXCEPTION_NOINLINE(sharemind::Exception,
+                                    RandomEngineFactory::,
+                                    Exception);
+SHAREMIND_DEFINE_EXCEPTION_NOINLINE(Exception,
+                                    RandomEngineFactory::,
+                                    RandomCtorSeedException);
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(Exception,
+                                              RandomEngineFactory::,
+                                              RandomCtorGeneratorNotSupported,
+                                              "Unsupported generator");
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(
+        Exception,
+        RandomEngineFactory::,
+        RandomCtorOtherError,
+        "Failed to construct the generator");
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(RandomCtorSeedException,
+                                              RandomEngineFactory::,
+                                              RandomCtorSeedTooShort,
+                                              "Provided seed is too short");
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(RandomCtorSeedException,
+                                              RandomEngineFactory::,
+                                              RandomCtorSeedSelfGenerateError,
+                                              "Failed to self-generate a seed");
+SHAREMIND_DEFINE_EXCEPTION_CONST_MSG_NOINLINE(
+        RandomCtorSeedException,
+        RandomEngineFactory::,
+        RandomCtorSeedNotSupported,
+        "Providing a fixed seed is not supported by this generator");
+
 size_t RandomEngineFactory::getSeedSize(SharemindCoreRandomEngineKind kind) noexcept {
     switch (kind) {
     case SHAREMIND_RANDOM_SNOW2:    return Snow2RandomEngine::SeedSize;
