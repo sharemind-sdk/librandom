@@ -37,7 +37,7 @@ public: /* Types: */
 
     using Configuration = SharemindRandomEngineConf;
 
-    SHAREMIND_DEFINE_EXCEPTION(std::exception, Exception);
+    SHAREMIND_DEFINE_EXCEPTION(sharemind::Exception, Exception);
     SHAREMIND_DEFINE_EXCEPTION(Exception, RandomCtorSeedException);
 
     SHAREMIND_DEFINE_EXCEPTION_CONST_MSG(Exception,
