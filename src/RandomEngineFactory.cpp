@@ -35,8 +35,6 @@
 #include <valgrind/memcheck.h>
 #endif
 
-#define SEED_TEMP_BUFFER_SIZE 256
-
 
 namespace sharemind {
 
