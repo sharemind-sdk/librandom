@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <memory>
+#include <sharemind/AssertReturn.h>
 #include <sharemind/visibility.h>
 #include "CryptographicRandom.h"
 #include "RandomEngine.h"
@@ -36,7 +37,7 @@ public: /* Methods: */
 
     inline void fillBytes(void * const buffer,
                           size_t const bufferSize) noexcept
-    { (assert(m_engine), m_engine)->fillBytes(buffer, bufferSize); }
+    { assertReturn(m_engine)->fillBytes(buffer, bufferSize); }
 
 private: /* Fields: */
 
@@ -58,7 +59,7 @@ inline RandomFacility::ScopedEngine & fromWrapper(SharemindRandomEngine & base)
 extern "C" void SharemindRandomEngine_fillBytes(SharemindRandomEngine * rng,
                                                 void * memptr,
                                                 size_t size) noexcept
-{ fromWrapper((assert(rng), *rng)).fillBytes(memptr, size); }
+{ fromWrapper(*assertReturn(rng)).fillBytes(memptr, size); }
 
 inline RandomFacility & fromWrapper(SharemindRandomFacility & base) noexcept
 { return static_cast<RandomFacility &>(base); }
@@ -227,7 +228,7 @@ SharemindRandomEngine * SharemindRandomFacility_createRandomEngineWithSeed(
 
 RandomFacility::ScopedEngine::ScopedEngine(std::shared_ptr<RandomEngine> engine)
     : SharemindRandomEngine{&SharemindRandomEngine_fillBytes}
-    , m_engine{std::move((assert(engine), engine))}
+    , m_engine(assertReturn(std::move(engine)))
 {}
 
 RandomFacility::RandomFacility(
