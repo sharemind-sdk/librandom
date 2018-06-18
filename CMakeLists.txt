@@ -169,7 +169,7 @@ SharemindAddComponentPackage("dev"
     DESCRIPTION "Sharemind Random library development headers"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
-        "libsharemind-random (= ${SharemindLibRandom_VERSION})"
+        "libsharemind-random (= ${SharemindLibRandom_DEB_lib_PACKAGE_VERSION})"
         "libsharemind-cxxheaders-dev (>= 0.1.0)"
         "libsharemind-cheaders-dev (>= 0.1.0)"
         "libc6-dev (>= 2.19)"
@@ -187,6 +187,6 @@ SharemindAddComponentPackage("debug"
     DESCRIPTION "Sharemind Random library debug symbols"
     DEB_SECTION "debug"
     DEB_DEPENDS
-        "libsharemind-random (= ${SharemindLibRandom_VERSION})"
+        "libsharemind-random (= ${SharemindLibRandom_DEB_lib_PACKAGE_VERSION})"
 )
 SharemindPackagingFinalize()
