@@ -29,7 +29,7 @@ SharemindSetProjectVersion()
 
 FIND_PACKAGE(OpenSSL REQUIRED)
 FIND_PACKAGE(SharemindCHeaders REQUIRED)
-FIND_PACKAGE(SharemindCxxHeaders REQUIRED)
+FIND_PACKAGE(SharemindCxxHeaders 0.4.0 REQUIRED)
 
 # Check if we have SSE2 support via emmintrin.h header
 INCLUDE(CheckCXXSourceCompiles)
@@ -170,7 +170,7 @@ SharemindAddComponentPackage("dev"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
         "libsharemind-random (= ${SharemindLibRandom_DEB_lib_PACKAGE_VERSION})"
-        "libsharemind-cxxheaders-dev (>= 0.1.0)"
+        "libsharemind-cxxheaders-dev (>= 0.4.0)"
         "libsharemind-cheaders-dev (>= 1.1.0)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
