@@ -24,7 +24,10 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <iterator>
 #include <vector>
+#include <type_traits>
+
 
 namespace sharemind {
 
@@ -64,8 +67,11 @@ public: /* Methods: */
     inline void fillBlock(T * begin, T * end) noexcept {
         assert (m_inner != nullptr);
         assert(begin <= end);
-        if (begin < end)
-            fillBytes(begin, sizeof(T) * (end - begin));
+        if (begin < end) {
+            auto const dist = std::distance(begin, end);
+            using U = typename std::make_unsigned<decltype(dist)>::type;
+            fillBytes(begin, sizeof(T) * static_cast<U>(dist));
+        }
     }
 
     template <typename T>
