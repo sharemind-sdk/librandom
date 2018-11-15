@@ -104,7 +104,7 @@ INSTALL(FILES ${SharemindLibRandom_HEADERS}
         COMPONENT "dev")
 
 # The library:
-SharemindSetCxx11CompileOptions()
+SharemindSetCxx14CompileOptions()
 
 FILE(GLOB_RECURSE SharemindLibRandom_SOURCES
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
