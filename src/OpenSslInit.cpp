@@ -23,7 +23,6 @@
 #include <mutex>
 #include <memory>
 #include <vector>
-#include <sharemind/MakeUnique.h>
 
 
 namespace /* anonymous */ {
@@ -41,7 +40,7 @@ private: /* Methods: */
         if (size_t num_locks = static_cast<size_t>(CRYPTO_num_locks())) {
             m_mutexes.reserve(num_locks);
             do {
-                m_mutexes.emplace_back(sharemind::makeUnique<std::mutex>());
+                m_mutexes.emplace_back(std::make_unique<std::mutex>());
             } while (--num_locks);
             CRYPTO_set_locking_callback(&openssl_locking_callback);
         }
