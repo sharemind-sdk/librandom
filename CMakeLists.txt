@@ -28,7 +28,6 @@ INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
 
 FIND_PACKAGE(SharemindCMakeHelpers 1.3 REQUIRED)
 
-FIND_PACKAGE(OpenSSL REQUIRED)
 FIND_PACKAGE(Cryptopp REQUIRED)
 FIND_PACKAGE(SharemindCHeaders 1.1.0 REQUIRED)
 FIND_PACKAGE(SharemindCxxHeaders 0.4.0 REQUIRED)
@@ -69,13 +68,12 @@ IF(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Release"))
 ENDIF()
 
 SharemindNewUniqueList(SharemindLibRandom_LINK_LIBRARIES
-    ${OPENSSL_LIBRARIES}
+    ${CRYPTOPP_LIBRARIES}
     ${SharemindCHeaders_LIBRARIES}
     ${SharemindCxxHeaders_LIBRARIES}
-    ${CRYPTOPP_LIBRARIES}
 )
 SharemindNewUniqueList(SharemindLibRandom_INCLUDE_DIRS
-    "${OPENSSL_INCLUDE_DIR}"
+    ${CRYPTOPP_INCLUDE_DIR}
     ${SharemindCHeaders_INCLUDE_DIRS}
     ${SharemindCxxHeaders_INCLUDE_DIRS}
 )
@@ -163,9 +161,7 @@ SharemindAddComponentPackage("lib"
     DEB_DEPENDS
         "libstdc++6 (>= 4.8.0)"
         "libc6 (>= 2.19)"
-        "libssl1.0.0"
-        "| libssl1.0.2"
-        "| libssl1.1"
+        "libcrypto++6"
 )
 SharemindAddComponentPackage("dev"
     NAME "libsharemind-random-dev"
@@ -178,7 +174,7 @@ SharemindAddComponentPackage("dev"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
         "linux-libc-dev"
-        "libssl-dev"
+        "libcrypto++-dev"
         "libgcc-4.8-dev"
         "| libgcc-4.9-dev"
         "| libgcc-5-dev"
