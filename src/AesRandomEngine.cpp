@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Cybernetica
+ * Copyright (C) Cybernetica
  *
  * Research/Commercial License Usage
  * Licensees holding a valid Research License or Commercial License
@@ -23,12 +23,10 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
-#include <openssl/evp.h>
 #include <sharemind/abort.h>
 #include <sharemind/PotentiallyVoidTypeInfo.h>
-#ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-#include <valgrind/memcheck.h>
-#endif
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
 
 #define AES_BLOCK_SIZE 16
 
@@ -43,97 +41,41 @@
 // This number has been selected to achieve less than 2^{-80} advantage.
 #define AES_COUNTER_LIMIT (1u << 24u)
 
-// This is a workaround for not knowing the
-// size of the key during compile time in order
-// to avoid using dynamic memory allocation.
-#define AES_STATIC_KEY_SIZE 128
-
 using namespace sharemind;
+using namespace CryptoPP;
 
 namespace /* anonymous */ {
-
-inline const EVP_CIPHER* aes_cipher() noexcept {
-    return EVP_aes_128_ctr();
-}
 
 struct Inner {
 
     inline Inner(const void * memptr_) noexcept
-        : m_ctx_inner(EVP_CIPHER_CTX_new())
-        , m_ctx_outer(EVP_CIPHER_CTX_new())
-        , m_counter_inner (0)
+        : m_counter_inner (0)
         , block_consumed (AES_INTERNAL_BUFFER)
     {
-        #ifdef SHAREMIND_LIBRANDOM_HAVE_VALGRIND
-        VALGRIND_MAKE_MEM_DEFINED(this, sizeof(Inner));
-        #endif
-
-        if (!m_ctx_inner || !m_ctx_outer)
-            SHAREMIND_ABORT("Failed to construct EVP_CIPHER_CTX");
-
-        EVP_CIPHER_CTX_set_padding(m_ctx_inner, 0);
-        EVP_CIPHER_CTX_set_padding(m_ctx_outer, 0);
-
-        uint8_t temp[AES_STATIC_KEY_SIZE];
-        memcpy(temp, memptr_, AesRandomEngine::seedSize());
-        aesSeed(&temp[0], &temp[0] + EVP_CIPHER_key_length(aes_cipher()));
+        const uint8_t * key = static_cast<const uint8_t *>(memptr_);
+        oPrng.SetKeyWithIV(key, AES::DEFAULT_KEYLENGTH, key + AES::DEFAULT_KEYLENGTH, AES::BLOCKSIZE);
+        aesReseedInner();
     }
 
     ~Inner() noexcept {
-        EVP_CIPHER_CTX_free(m_ctx_outer);
-        EVP_CIPHER_CTX_free(m_ctx_inner);
     }
 
-    void aesSeed(unsigned char * key, unsigned char * iv) noexcept;
     void aesReseedInner() noexcept;
     void aesNextBlock() noexcept;
 
-    EVP_CIPHER_CTX* m_ctx_inner;
-    EVP_CIPHER_CTX* m_ctx_outer;
+    CTR_Mode<AES>::Encryption iPrng;
+    CTR_Mode<AES>::Encryption oPrng;
     uint64_t m_counter_inner;
     uint64_t block_consumed; // number of bytes that have been consumed from the block
-    uint8_t block[AES_INTERNAL_BUFFER]; // buffer of generated randomness
+    std::array<uint8_t, AES_INTERNAL_BUFFER> block; // buffer of generated randomness
 };
 
-inline void aesSeedCtx(EVP_CIPHER_CTX * ctx,
-                         unsigned char * key,
-                         unsigned char * iv) noexcept
-{
-    if (!EVP_EncryptInit_ex (ctx, aes_cipher(), nullptr, key, iv))
-        SHAREMIND_ABORT("aesSeedCtx: Initializing AES context failed!");
-}
-
-void Inner::aesSeed(unsigned char * key, unsigned char * iv) noexcept {
-    aesSeedCtx(m_ctx_outer, key, iv);
-    aesReseedInner();
-}
-
 void Inner::aesReseedInner() noexcept {
-    const auto numBlocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
-    const auto plaintextSize = numBlocks * AES_BLOCK_SIZE;
-    assert(plaintextSize < AES_STATIC_KEY_SIZE);
-    uint8_t plaintext[AES_STATIC_KEY_SIZE] = {};
-    uint8_t seed[AES_STATIC_KEY_SIZE] = {};
-
-    int bytesWritten = 0;
-    assert(plaintextSize <= std::numeric_limits<int>::max());
-    if (!EVP_EncryptUpdate(m_ctx_outer,
-                           &seed[0],
-                           &bytesWritten,
-                           plaintext,
-                           static_cast<int>(plaintextSize)))
-        SHAREMIND_ABORT("aesReseedInner: Encryption failed!");
-
-    assert(bytesWritten > 0
-           && static_cast<decltype(plaintextSize)>(bytesWritten)
-              == plaintextSize);
-
-    if (!EVP_EncryptFinal_ex(m_ctx_outer, &seed[0] + bytesWritten, &bytesWritten))
-        SHAREMIND_ABORT("aesReseedInner: EncryptFinal failed!");
-
-    assert(bytesWritten == 0);
-    const auto keyLen = EVP_CIPHER_key_length(aes_cipher());
-    aesSeedCtx(m_ctx_inner, &seed[0], &seed[0] + keyLen);
+    uint8_t key[AES::DEFAULT_KEYLENGTH];
+    oPrng.GenerateBlock(key, sizeof(key));
+    uint8_t iv[AES::BLOCKSIZE];
+    oPrng.GenerateBlock(iv, sizeof(iv));
+    iPrng.SetKeyWithIV(key, sizeof(key), iv, sizeof(iv));
 }
 
 void Inner::aesNextBlock() noexcept {
@@ -142,20 +84,9 @@ void Inner::aesNextBlock() noexcept {
         m_counter_inner = 0;
     }
 
-    // We are using a temporary zero buffer because OpenSSL documentation does
-    // not explicitly state that in-place encrypts are allowed.
-    unsigned char plaintext[AES_INTERNAL_BUFFER] = { };
-
-    int bytesWritten = 0;
-    if (!EVP_EncryptUpdate(m_ctx_inner, &block[0], &bytesWritten, plaintext, AES_INTERNAL_BUFFER))
-        SHAREMIND_ABORT("Encryption failed.");
-
-    assert(bytesWritten == AES_INTERNAL_BUFFER);
-    if (!EVP_EncryptFinal_ex(m_ctx_inner, &block[0] + bytesWritten, &bytesWritten))
-        SHAREMIND_ABORT("EncryptFinal failed.");
+    iPrng.GenerateBlock(block.data(), AES_INTERNAL_BUFFER);
 
     m_counter_inner += AES_PARALLEL_BLOCKS;
-    assert(bytesWritten == 0);
 }
 
 } // namespace anonymous
@@ -199,21 +130,11 @@ void AesRandomEngine::fillBytes(void * memptr, size_t size) noexcept {
 }
 
 bool AesRandomEngine::supported() noexcept {
-    if (!aes_cipher())
-        return false;
-
-    // Make sure that our seed, aligned to AES_BLOCK_SIZE, fits into AES_STATIC_KEY_SIZE.
-    auto const numBlocks = (AesRandomEngine::seedSize() + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE;
-    auto const seedSize = numBlocks * AES_BLOCK_SIZE;
-    return seedSize <= AES_STATIC_KEY_SIZE;
+    return true;
 }
 
 size_t AesRandomEngine::seedSize() noexcept {
-    if (!aes_cipher())
-        return 0;
-
-    return static_cast<size_t>(EVP_CIPHER_key_length(aes_cipher()))
-           + static_cast<size_t>(EVP_CIPHER_iv_length(aes_cipher()));
+    return AES::DEFAULT_KEYLENGTH + AES::BLOCKSIZE;
 }
 
 }
