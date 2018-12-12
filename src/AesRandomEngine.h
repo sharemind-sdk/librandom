@@ -22,6 +22,8 @@
 
 #include "RandomEngine.h"
 
+#include <cstddef>
+
 
 namespace sharemind {
 
@@ -30,15 +32,15 @@ class AesRandomEngine: public RandomEngine {
 
 public: /* Methods: */
 
-    AesRandomEngine(const void * seed);
+    AesRandomEngine(void const * seed);
 
     ~AesRandomEngine() noexcept override;
 
-    void fillBytes(void * buffer, size_t size) noexcept override;
+    void fillBytes(void * buffer, std::size_t size) noexcept override;
 
     static bool supported() noexcept;
 
-    static size_t seedSize() noexcept;
+    static std::size_t seedSize() noexcept;
 
 private: /* Fields: */
 
