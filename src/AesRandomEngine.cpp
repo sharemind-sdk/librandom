@@ -51,11 +51,14 @@ struct Inner {
         : m_counterInner(0)
         , m_blockConsumed(AES_INTERNAL_BUFFER)
     {
-        auto const key = static_cast<CryptoPP::byte const *>(memptr_);
+        /* Workaround ::byte / CryptoPP::byte in Crypto++ change 00f9818b5d8e */
+        using namespace CryptoPP;
+
+        auto const key = static_cast<byte const *>(memptr_);
         m_oPrng.SetKeyWithIV(key,
-                             CryptoPP::AES::DEFAULT_KEYLENGTH,
-                             key + CryptoPP::AES::DEFAULT_KEYLENGTH,
-                             CryptoPP::AES::BLOCKSIZE);
+                             AES::DEFAULT_KEYLENGTH,
+                             key + AES::DEFAULT_KEYLENGTH,
+                             AES::BLOCKSIZE);
         aesReseedInner();
     }
 
