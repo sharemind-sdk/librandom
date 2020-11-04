@@ -26,11 +26,11 @@ SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeIncludes/"
 INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/config.local" OPTIONAL)
 INCLUDE("${CMAKE_CURRENT_BINARY_DIR}/config.local" OPTIONAL)
 
-FIND_PACKAGE(SharemindCMakeHelpers 1.4 REQUIRED)
+FIND_PACKAGE(SharemindCMakeHelpers 1.6 REQUIRED)
 
 FIND_PACKAGE(Cryptopp REQUIRED)
-FIND_PACKAGE(SharemindCHeaders 1.1.0 REQUIRED)
-FIND_PACKAGE(SharemindCxxHeaders 0.4.0 REQUIRED)
+FIND_PACKAGE(SharemindCHeaders 1.3.0 REQUIRED)
+FIND_PACKAGE(SharemindCxxHeaders 0.8.0 REQUIRED)
 
 # Check if we have SSE2 support via emmintrin.h header
 INCLUDE(CheckCXXSourceCompiles)
@@ -57,47 +57,6 @@ int main () {
 "
 HAVE_EMMINTRIN_SSE2)
 
-IF(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Release"))
-    FIND_PATH(VALGRIND_INCLUDE_DIR "valgrind/memcheck.h"
-              PATHS "/usr/include/valgrind" "/usr/local/include/valgrind")
-    IF(VALGRIND_INCLUDE_DIR)
-        MESSAGE(STATUS "Found valgrind/memcheck.h in ${VALGRIND_INCLUDE_DIR}")
-    ELSE()
-        MESSAGE(STATUS "valgrind/memcheck.h not found!")
-    ENDIF()
-ENDIF()
-
-SharemindNewUniqueList(SharemindLibRandom_LINK_LIBRARIES
-    ${CRYPTOPP_LIBRARIES}
-    ${SharemindCHeaders_LIBRARIES}
-    ${SharemindCxxHeaders_LIBRARIES}
-)
-SharemindNewUniqueList(SharemindLibRandom_INCLUDE_DIRS
-    ${CRYPTOPP_INCLUDE_DIR}
-    ${SharemindCHeaders_INCLUDE_DIRS}
-    ${SharemindCxxHeaders_INCLUDE_DIRS}
-)
-IF(VALGRIND_INCLUDE_DIR)
-    SharemindListAppendUnique(SharemindLibRandom_INCLUDE_DIRS
-        "${VALGRIND_INCLUDE_DIR}"
-    )
-ENDIF()
-
-SharemindNewUniqueList(SharemindLibRandom_DEFINITIONS
-    ${SharemindCHeaders_DEFINITIONS}
-    ${SharemindCxxHeaders_DEFINITIONS}
-)
-IF(VALGRIND_INCLUDE_DIR)
-    SharemindListAppendUnique(SharemindLibRandom_DEFINITIONS
-        "-DSHAREMIND_LIBRANDOM_HAVE_VALGRIND"
-    )
-ENDIF()
-IF(HAVE_EMMINTRIN_SSE2)
-    SharemindListAppendUnique(SharemindLibRandom_DEFINITIONS
-        "-DSHAREMIND_HAVE_EMMINTRIN_SSE2"
-    )
-ENDIF()
-
 
 # Headers:
 FILE(GLOB_RECURSE SharemindLibRandom_HEADERS
@@ -108,47 +67,60 @@ INSTALL(FILES ${SharemindLibRandom_HEADERS}
 
 # The library:
 SharemindSetCxx14CompileOptions()
-
 FILE(GLOB_RECURSE SharemindLibRandom_SOURCES
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-SharemindAddSharedLibrary("librandom"
+SharemindAddSharedLibrary(LibRandom
     OUTPUT_NAME "sharemind_random"
     SOURCES
         ${SharemindLibRandom_SOURCES}
         ${SharemindLibRandom_HEADERS}
-    INCLUDE_DIRECTORIES
-        ${SharemindLibRandom_INCLUDE_DIRS}
-    LEGACY_DEFINITIONS
-        ${SharemindLibRandom_DEFINITIONS}
-    LINK_LIBRARIES
-        ${SharemindLibRandom_LINK_LIBRARIES}
 )
-
-
-# Install CMake files:
-SharemindCreateCMakeFindFiles(
-    INCLUDE_DIRS
-        "${CMAKE_INSTALL_PREFIX}/include"
-        ${SharemindLibRandom_INCLUDE_DIRS}
-    DEFINITIONS
-        ${SharemindLibRandom_DEFINITIONS}
-    LIBRARIES
-        ${SharemindLibRandom_LINK_LIBRARIES}
-        "-L${CMAKE_INSTALL_PREFIX}/lib"
-        "-lsharemind_random"
-)
+TARGET_INCLUDE_DIRECTORIES(LibRandom
+    PRIVATE
+        ${CRYPTOPP_INCLUDE_DIRS}
+    INTERFACE
+        # $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> # TODO
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
+    )
+TARGET_LINK_LIBRARIES(LibRandom
+    PRIVATE
+        ${CRYPTOPP_LIBRARIES}
+    PUBLIC
+        Sharemind::CHeaders
+        Sharemind::CxxHeaders
+    )
+IF(HAVE_EMMINTRIN_SSE2)
+    TARGET_COMPILE_DEFINITIONS(LibRandom
+        PRIVATE
+            "SHAREMIND_HAVE_EMMINTRIN_SSE2"
+    )
+ENDIF()
+IF(NOT ("${CMAKE_BUILD_TYPE}" STREQUAL "Release"))
+    FIND_PATH(VALGRIND_INCLUDE_DIR "valgrind/memcheck.h"
+              PATHS "/usr/include/valgrind" "/usr/local/include/valgrind")
+    IF(VALGRIND_INCLUDE_DIR)
+        MESSAGE(STATUS "Found valgrind/memcheck.h in ${VALGRIND_INCLUDE_DIR}")
+        TARGET_INCLUDE_DIRECTORIES(LibRandom PRIVATE "VALGRIND_INCLUDE_DIR")
+        TARGET_COMPILE_DEFINITIONS(LibRandom
+            PRIVATE
+                "SHAREMIND_LIBRANDOM_HAVE_VALGRIND"
+        )
+    ELSE()
+        MESSAGE(STATUS "valgrind/memcheck.h not found!")
+    ENDIF()
+ENDIF()
+SharemindCreateCMakeFindFilesForTarget(LibRandom
+    DEPENDENCIES
+        "SharemindCHeaders 1.3.0"
+        "SharemindCxxHeaders 0.8.0"
+    )
 
 
 # Tests:
 SharemindAddSimpleTests(
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/Test*.cpp"
-    INCLUDE_DIRECTORIES
-        ${SharemindLibRandom_INCLUDE_DIRS}
-    LEGACY_DEFINITIONS
-        ${SharemindLibRandom_INSTALL_DEFINITIONS}
     LINK_LIBRARIES
-        ${SharemindLibRandom_LINK_LIBRARIES}
-        "librandom"
+        LibRandom
 )
 
 
@@ -170,8 +142,8 @@ SharemindAddComponentPackage("dev"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
         "libsharemind-random (= ${SharemindLibRandom_DEB_lib_PACKAGE_VERSION})"
-        "libsharemind-cxxheaders-dev (>= 0.4.0)"
-        "libsharemind-cheaders-dev (>= 1.1.0)"
+        "libsharemind-cxxheaders-dev (>= 0.8.0)"
+        "libsharemind-cheaders-dev (>= 1.3.0)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
         "linux-libc-dev"
