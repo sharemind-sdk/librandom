@@ -134,7 +134,7 @@ SharemindAddComponentPackage("lib"
         "libstdc++6 (>= 4.8.0)"
         "libc6 (>= 2.19)"
         "libcrypto++6"
-        "| libcrypto++9v5"
+        "| libcrypto++8"
 )
 SharemindAddComponentPackage("dev"
     NAME "libsharemind-random-dev"
