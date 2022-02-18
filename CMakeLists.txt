@@ -111,7 +111,7 @@ ENDIF()
 SharemindCreateCMakeFindFilesForTarget(LibRandom
     DEPENDENCIES
         "SharemindCHeaders 1.3.0"
-        "SharemindCxxHeaders 0.8.0"
+        "SharemindCxxHeaders 0.9.0"
     )
 
 
@@ -142,7 +142,7 @@ SharemindAddComponentPackage("dev"
     DEB_SECTION "libdevel"
     DEB_DEPENDS
         "libsharemind-random (= ${SharemindLibRandom_DEB_lib_PACKAGE_VERSION})"
-        "libsharemind-cxxheaders-dev (>= 0.8.0)"
+        "libsharemind-cxxheaders-dev (>= 0.9.0)"
         "libsharemind-cheaders-dev (>= 1.3.0)"
         "libc6-dev (>= 2.19)"
         "libstdc++-dev"
