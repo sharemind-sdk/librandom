@@ -30,7 +30,7 @@ FIND_PACKAGE(SharemindCMakeHelpers 1.6 REQUIRED)
 
 FIND_PACKAGE(Cryptopp REQUIRED)
 FIND_PACKAGE(SharemindCHeaders 1.3.0 REQUIRED)
-FIND_PACKAGE(SharemindCxxHeaders 0.8.0 REQUIRED)
+FIND_PACKAGE(SharemindCxxHeaders 0.9.0 REQUIRED)
 
 # Check if we have SSE2 support via emmintrin.h header
 INCLUDE(CheckCXXSourceCompiles)
