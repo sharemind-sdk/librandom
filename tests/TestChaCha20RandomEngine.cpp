@@ -1,6 +1,7 @@
 #include "../src/ChaCha20RandomEngine.h"
 
 #include <array>
+#include <cstdint>
 #include <sharemind/TestAssert.h>
 
 

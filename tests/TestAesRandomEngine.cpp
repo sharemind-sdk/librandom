@@ -1,6 +1,7 @@
 #include "../src/AesRandomEngine.h"
 
 #include <array>
+#include <cstdint>
 #include <sharemind/TestAssert.h>
 
 
